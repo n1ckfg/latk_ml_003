@@ -130,13 +130,13 @@ def train():
         image_folder = "images/%s/epoch_%s_" % (opt.dataset_name, epoch)
 
         hf = h5py.File(image_folder + 'real_A.vox', 'w')
-        hf.create_dataset('data', data=real_A)
+        hf.create_dataset('data', data=real_A, compression='gzip')
 
         hf1 = h5py.File(image_folder + 'real_B.vox', 'w')
-        hf1.create_dataset('data', data=real_B)
+        hf1.create_dataset('data', data=real_B, compression='gzip')
 
         hf2 = h5py.File(image_folder + 'fake_B.vox', 'w')
-        hf2.create_dataset('data', data=fake_B)
+        hf2.create_dataset('data', data=fake_B, compression='gzip')
 
     # ----------
     #  Training
