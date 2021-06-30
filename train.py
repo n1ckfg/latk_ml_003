@@ -37,7 +37,7 @@ def train():
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--decay_epoch", type=int, default=100, help="epoch from which to start lr decay")
-    parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
+    parser.add_argument("--n_cpu", type=int, default=4, help="number of cpu threads to use during batch generation") #8
     parser.add_argument("--img_height", type=int, default=128, help="size of image height")
     parser.add_argument("--img_width", type=int, default=128, help="size of image width")
     parser.add_argument("--img_depth", type=int, default=128, help="size of image depth")
@@ -48,7 +48,7 @@ def train():
     parser.add_argument(
         "--sample_interval", type=int, default=1, help="interval between sampling of images from generators"
     )
-    parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interval between model checkpoints")
+    parser.add_argument("--checkpoint_interval", type=int, default=50, help="interval between model checkpoints") #-1
     opt = parser.parse_args()
     print(opt)
 
