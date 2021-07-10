@@ -52,8 +52,8 @@ def test():
     opt = parser.parse_args()
     print(opt)
 
-    os.makedirs("images/%s" % opt.dataset_name, exist_ok=True)
-    os.makedirs("saved_models/%s" % opt.dataset_name, exist_ok=True)
+    os.makedirs("output/%s" % opt.dataset_name, exist_ok=True)
+    #os.makedirs("saved_models/%s" % opt.dataset_name, exist_ok=True)
 
     cuda = True if torch.cuda.is_available() else False
 
@@ -77,14 +77,14 @@ def test():
         criterion_GAN.cuda()
         criterion_voxelwise.cuda()
 
-    if opt.epoch != 0:
+    #if opt.epoch != 0:
         # Load pretrained models
-        generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
-        discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
-    else:
+    generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
+    discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
+    #else:
         # Initialize weights
-        generator.apply(weights_init_normal)
-        discriminator.apply(weights_init_normal)
+        #generator.apply(weights_init_normal)
+        #discriminator.apply(weights_init_normal)
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.glr, betas=(opt.b1, opt.b2))
@@ -97,12 +97,14 @@ def test():
         # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
 
+    '''
     dataloader = DataLoader(
         CTDataset("../../data/%s/train/" % opt.dataset_name, transforms_=transforms_),
         batch_size=opt.batch_size,
         shuffle=True,
         num_workers=opt.n_cpu,
     )
+    '''
 
     val_dataloader = DataLoader(
         CTDataset("../../data/%s/test/" % opt.dataset_name, transforms_=transforms_),
@@ -127,7 +129,7 @@ def test():
         real_B = real_B.cpu().detach().numpy()
         fake_B = fake_B.cpu().detach().numpy()
 
-        image_folder = "images/%s/epoch_%s_" % (opt.dataset_name, epoch)
+        image_folder = "output/%s/epoch_%s_" % (opt.dataset_name, epoch)
 
         hf = h5py.File(image_folder + 'real_A.vox', 'w')
         hf.create_dataset('data', data=real_A, compression='gzip')
@@ -138,10 +140,15 @@ def test():
         hf2 = h5py.File(image_folder + 'fake_B.vox', 'w')
         hf2.create_dataset('data', data=fake_B, compression='gzip')
 
+    for i, batch in enumerate(val_dataloader):
+      sample_voxel_volumes(i)
+      print('*****volumes sampled*****')
+
     # ----------
     #  Training
     # ----------
 
+    '''
     prev_time = time.time()
     discriminator_update = 'False'
     for epoch in range(opt.epoch, opt.n_epochs):
@@ -239,7 +246,7 @@ def test():
             # Save model checkpoints
             torch.save(generator.state_dict(), "saved_models/%s/generator_%d.pth" % (opt.dataset_name, epoch))
             torch.save(discriminator.state_dict(), "saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, epoch))
-
+    '''
 
 if __name__ == '__main__':
 
