@@ -52,7 +52,7 @@ def test():
     opt = parser.parse_args()
     print(opt)
 
-    os.makedirs("output/%s" % opt.dataset_name, exist_ok=True)
+    #os.makedirs("output/%s" % opt.dataset_name, exist_ok=True)
     #os.makedirs("saved_models/%s" % opt.dataset_name, exist_ok=True)
 
     cuda = True if torch.cuda.is_available() else False
@@ -79,8 +79,10 @@ def test():
 
     #if opt.epoch != 0:
         # Load pretrained models
-    generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
-    discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
+    #generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
+    #discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
+    generator.load_state_dict(torch.load("models/generator_200.pth"))
+    discriminator.load_state_dict(torch.load("models/discriminator_200.pth"))
     #else:
         # Initialize weights
         #generator.apply(weights_init_normal)
@@ -107,7 +109,7 @@ def test():
     '''
 
     val_dataloader = DataLoader(
-        CTDataset("../../data/%s/test/" % opt.dataset_name, transforms_=transforms_),
+        CTDataset("input/", transforms_=transforms_),
         batch_size=1,
         shuffle=True,
         num_workers=1,
@@ -116,39 +118,38 @@ def test():
     # Tensor type
     Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
-
     def sample_voxel_volumes(epoch):
         """Saves a generated sample from the validation set"""
         imgs = next(iter(val_dataloader))
         real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
-        real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
+        #real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
         fake_B = generator(real_A)
 
         # convert to numpy arrays
         real_A = real_A.cpu().detach().numpy()
-        real_B = real_B.cpu().detach().numpy()
+        #real_B = real_B.cpu().detach().numpy()
         fake_B = fake_B.cpu().detach().numpy()
 
-        image_folder = "output/%s/epoch_%s_" % (opt.dataset_name, epoch)
+        image_folder = "output/%s_%s_" % (opt.dataset_name, epoch)
 
         hf = h5py.File(image_folder + 'real_A.vox', 'w')
         hf.create_dataset('data', data=real_A, compression='gzip')
 
-        hf1 = h5py.File(image_folder + 'real_B.vox', 'w')
-        hf1.create_dataset('data', data=real_B, compression='gzip')
+        #hf1 = h5py.File(image_folder + 'real_B.vox', 'w')
+        #hf1.create_dataset('data', data=real_B, compression='gzip')
 
         hf2 = h5py.File(image_folder + 'fake_B.vox', 'w')
         hf2.create_dataset('data', data=fake_B, compression='gzip')
 
     for i, batch in enumerate(val_dataloader):
       sample_voxel_volumes(i)
-      print('*****volumes sampled*****')
+      print('*****volume ' + str(i+1) + '/' + str(len(val_dataloader)) + ' sampled*****')
 
+    '''
     # ----------
     #  Training
     # ----------
 
-    '''
     prev_time = time.time()
     discriminator_update = 'False'
     for epoch in range(opt.epoch, opt.n_epochs):
