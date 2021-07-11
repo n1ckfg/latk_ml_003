@@ -129,7 +129,7 @@ def test():
 
         with open(path, 'bw') as f:
             v.write(f)
-        
+
     def sample_voxel_volumes(epoch):
         """Saves a generated sample from the validation set"""
         imgs = next(iter(val_dataloader))
@@ -149,13 +149,19 @@ def test():
         hf.flush()
         hf.close()
 
+        write_binvox(real_A, image_folder + 'real_A.binvox')
+
         #hf1 = h5py.File(image_folder + 'real_B.vox', 'w')
         #hf1.create_dataset('data', data=real_B, compression='gzip')
+        #hf1.flush()
+        #hf1.close()
 
         hf2 = h5py.File(image_folder + 'fake_B.vox', 'w')
         hf2.create_dataset('data', data=fake_B, compression='gzip')
         hf2.flush()
         hf2.close()
+
+        write_binvox(real_B, image_folder + 'fake_B.binvox')
 
     for i, batch in enumerate(val_dataloader):
       sample_voxel_volumes(i)
