@@ -144,10 +144,10 @@ def test():
 
         image_folder = "output/%s_%s_" % (opt.dataset_name, epoch)
 
-        hf = h5py.File(image_folder + 'real_A.vox', 'w')
-        hf.create_dataset('data', data=real_A, compression='gzip')
-        hf.flush()
-        hf.close()
+        #hf = h5py.File(image_folder + 'real_A.vox', 'w')
+        #hf.create_dataset('data', data=real_A, compression='gzip')
+        #hf.flush()
+        #hf.close()
 
         write_binvox(real_A, image_folder + 'real_A.binvox')
 
@@ -156,10 +156,10 @@ def test():
         #hf1.flush()
         #hf1.close()
 
-        hf2 = h5py.File(image_folder + 'fake_B.vox', 'w')
-        hf2.create_dataset('data', data=fake_B, compression='gzip')
-        hf2.flush()
-        hf2.close()
+        #hf2 = h5py.File(image_folder + 'fake_B.vox', 'w')
+        #hf2.create_dataset('data', data=fake_B, compression='gzip')
+        #hf2.flush()
+        #hf2.close()
 
         write_binvox(fake_B, image_folder + 'fake_B.binvox')
 
