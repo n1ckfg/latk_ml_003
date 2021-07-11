@@ -34,7 +34,8 @@ class CTDataset(Dataset):
     def __init__(self, datapath, transforms_):
         self.datapath = datapath
         self.transforms = transforms_
-        self.samples = ['../..'+x.split('.')[4] for x in glob.glob(self.datapath + '/*.im')]
+        #self.samples = ['../..'+x.split('.')[4] for x in glob.glob(self.datapath + '/*.im')]
+        self.samples = [x.split('.')[0] for x in glob.glob(self.datapath + '/*.im')]
         #self.samples = [x.split('.')[0] for x in glob.glob(self.datapath + '/*.binvox')]
 
     def __len__(self):
