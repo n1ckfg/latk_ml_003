@@ -3,6 +3,33 @@ import h5py
 import numpy as np
 import glob
 
+import binvox_rw
+
+def resize(voxel, shape):
+    """
+    resize voxel shape
+    """
+    ratio = shape[0] / voxel.shape[0]
+    voxel = nd.zoom(voxel,
+            ratio,
+            order=1, 
+            mode='nearest')
+    voxel[np.nonzero(voxel)] = 1.0
+    return voxel
+
+def read_binvox(path, shape=(128,128,128), fix_coords=True):
+    """
+    read voxel data from .binvox file
+    """
+    with open(path, 'rb') as f:
+        voxel = binvox_rw.read_as_3d_array(f, fix_coords)
+    
+    voxel_data = voxel.data.astype(np.float)
+    if shape is not None and voxel_data.shape != shape:
+        voxel_data = resize(voxel.data.astype(np.float64), shape)
+
+    return voxel_data
+
 class CTDataset(Dataset):
     def __init__(self, datapath, transforms_):
         self.datapath = datapath
@@ -25,3 +52,4 @@ class CTDataset(Dataset):
             #mask = self.transforms(mask)
         
         return {"A": image, "B": image} #mask}
+
