@@ -45,7 +45,7 @@ class CTDataset(Dataset):
         data = read_binvox(self.samples[idx] + '.binvox')
         image = h5py.File(self.samples[idx] + '.im', 'w')
         image.create_dataset('data', data = data, compression='gzip')
-        #image = h5py.File(self.samples[idx] + '.im', 'r').get('data')[()]
+        image = h5py.File(self.samples[idx] + '.im', 'r').get('data')[()]
         #mask = h5py.File(self.samples[idx] + '.seg', 'r').get('data')[()]
         # print(self.samples[idx])
         # print(image.shape)
