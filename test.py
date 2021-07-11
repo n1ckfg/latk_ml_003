@@ -24,6 +24,7 @@ import torch.nn.functional as F
 import torch
 
 import h5py
+import binvox_rw
 
 def test():
 
