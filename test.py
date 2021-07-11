@@ -119,6 +119,17 @@ def test():
     # Tensor type
     Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
+    def write_binvox(data, path):
+        data = np.rint(data).astype(np.uint8)
+        dims = (128, 128, 128) #data.shape
+        translate = [0, 0, 0]
+        scale = 1.0
+        axis_order = 'xzy'
+        v = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
+
+        with open(path, 'bw') as f:
+            v.write(f)
+        
     def sample_voxel_volumes(epoch):
         """Saves a generated sample from the validation set"""
         imgs = next(iter(val_dataloader))
