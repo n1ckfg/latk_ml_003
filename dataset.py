@@ -35,14 +35,14 @@ class CTDataset(Dataset):
         self.datapath = datapath
         self.transforms = transforms_
         #self.samples = ['../..'+x.split('.')[4] for x in glob.glob(self.datapath + '/*.im')]
-        self.samples = [x.split('.')[0] for x in glob.glob(self.datapath + '/*.im')]
+        self.samples = [x.split('.')[0] for x in glob.glob(self.datapath + '/*.binvox')]
 
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, idx):
         # print(self.samples[idx])
-        data = read_binvox(self.samples[idx] + '.im')
+        data = read_binvox(self.samples[idx] + '.binvox')
         image = h5py.File(out_path, 'w')
         image.create_dataset('data', data = data, compression='gzip')
         #image = h5py.File(self.samples[idx] + '.im', 'r').get('data')[()]
