@@ -161,7 +161,7 @@ def test():
         hf2.flush()
         hf2.close()
 
-        write_binvox(real_B, image_folder + 'fake_B.binvox')
+        write_binvox(fake_B, image_folder + 'fake_B.binvox')
 
     for i, batch in enumerate(val_dataloader):
       sample_voxel_volumes(i)
