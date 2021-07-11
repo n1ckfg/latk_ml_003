@@ -135,8 +135,8 @@ def test():
 
         hf = h5py.File(image_folder + 'real_A.vox', 'w')
         hf.create_dataset('data', data=real_A, compression='gzip')
-        hf2.flush()
-        hf2.close()
+        hf.flush()
+        hf.close()
 
         #hf1 = h5py.File(image_folder + 'real_B.vox', 'w')
         #hf1.create_dataset('data', data=real_B, compression='gzip')
