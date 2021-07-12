@@ -15,7 +15,7 @@ from torchvision import datasets
 from torch.autograd import Variable
 
 from models import *
-from dataset import CTDataset
+from dataset_test import CTDataset
 
 from dice_loss import diceloss
 

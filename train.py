@@ -15,7 +15,7 @@ from torchvision import datasets
 from torch.autograd import Variable
 
 from models import *
-from dataset import CTDataset
+from dataset_train import CTDataset
 
 from dice_loss import diceloss
 
@@ -98,14 +98,14 @@ def train():
     ])
 
     dataloader = DataLoader(
-        CTDataset("../../data/%s/train/" % opt.dataset_name, transforms_=transforms_),
+        CTDataset("data/%s/train/" % opt.dataset_name, transforms_=transforms_),
         batch_size=opt.batch_size,
         shuffle=True,
         num_workers=opt.n_cpu,
     )
 
     val_dataloader = DataLoader(
-        CTDataset("../../data/%s/test/" % opt.dataset_name, transforms_=transforms_),
+        CTDataset("data/%s/test/" % opt.dataset_name, transforms_=transforms_),
         batch_size=1,
         shuffle=True,
         num_workers=1,
