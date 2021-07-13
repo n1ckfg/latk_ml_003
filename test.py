@@ -113,7 +113,6 @@ def test():
         CTDataset("input/", transforms_=transforms_),
         batch_size=1,
         shuffle=False,
-        replacement=False,
         num_workers=1,
     )
 
