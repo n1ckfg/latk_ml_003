@@ -112,7 +112,7 @@ def test():
     val_dataloader = DataLoader(
         CTDataset("input/", transforms_=transforms_),
         batch_size=1,
-        shuffle=False,
+        shuffle=True,
         num_workers=1,
     )
 
