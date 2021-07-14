@@ -5,6 +5,8 @@ import glob
 
 import binvox_rw
 
+dim = 256
+
 def resize(voxel, shape):
     """
     resize voxel shape
@@ -17,7 +19,7 @@ def resize(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
-def read_binvox(path, shape=(128,128,128), fix_coords=True):
+def read_binvox(path, shape=(dim, dim, dim), fix_coords=True):
     """
     read voxel data from .binvox file
     """

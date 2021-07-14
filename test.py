@@ -39,9 +39,9 @@ def test():
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--decay_epoch", type=int, default=100, help="epoch from which to start lr decay")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation") #8
-    parser.add_argument("--img_height", type=int, default=128, help="size of image height")
-    parser.add_argument("--img_width", type=int, default=128, help="size of image width")
-    parser.add_argument("--img_depth", type=int, default=128, help="size of image depth")
+    parser.add_argument("--img_height", type=int, default=256, help="size of image height")
+    parser.add_argument("--img_width", type=int, default=256, help="size of image width")
+    parser.add_argument("--img_depth", type=int, default=256, help="size of image depth")
     parser.add_argument("--channels", type=int, default=1, help="number of image channels")
     parser.add_argument("--disc_update", type=int, default=5, help="only update discriminator every n iter")
     parser.add_argument("--d_threshold", type=int, default=.8, help="discriminator threshold")
@@ -121,7 +121,7 @@ def test():
 
     def write_binvox(data, path):
         data = np.rint(data).astype(np.uint8)
-        dims = (128, 128, 128) #data.shape
+        dims = (opt.img_width, opt.img_height, opt.img_depth) #data.shape
         translate = [0, 0, 0]
         scale = 1.0
         axis_order = 'xzy'
