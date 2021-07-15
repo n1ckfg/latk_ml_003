@@ -17,7 +17,7 @@ class CTDataset(Dataset):
     def __getitem__(self, idx):
         image = h5py.File(self.samples[idx] + '.im', 'r').get('data')[()]
         
-        if (isTest == False):
+        if (self.isTest == False):
             mask = h5py.File(self.samples[idx] + '.seg', 'r').get('data')[()]
             
             if self.transforms:
