@@ -4,9 +4,10 @@ import numpy as np
 import glob
 
 class CTDataset(Dataset):
-    def __init__(self, datapath, transforms_):
+    def __init__(self, datapath, transforms_, isTest=False):
         self.datapath = datapath
         self.transforms = transforms_
+        self.isTest = isTest
         #self.samples = ['../..'+x.split('.')[4] for x in glob.glob(self.datapath + '/*.im')]
         self.samples = [x.split('.')[0] for x in glob.glob(self.datapath + '/*.im')]
 
@@ -14,13 +15,17 @@ class CTDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx):
-        # print(self.samples[idx])
         image = h5py.File(self.samples[idx] + '.im', 'r').get('data')[()]
-        mask = h5py.File(self.samples[idx] + '.seg', 'r').get('data')[()]
-        # print(self.samples[idx])
-        # print(image.shape)
-        # print(mask.shape)
-        if self.transforms:
-            image, mask = self.transforms(image), self.transforms(mask)
         
-        return {"A": image, "B": mask}
+        if (isTest == False):
+            mask = h5py.File(self.samples[idx] + '.seg', 'r').get('data')[()]
+            
+            if self.transforms:
+                image, mask = self.transforms(image), self.transforms(mask)
+            
+            return {"A": image, "B": mask}
+        else:
+            if self.transforms:
+                image = self.transforms(image)
+            
+            return {"A": image, "B": image}            
