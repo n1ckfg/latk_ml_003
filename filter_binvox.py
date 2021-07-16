@@ -14,8 +14,10 @@ argv = argv[argv.index("--") + 1:] # get all args after "--"
 inputPath = argv[0]
 
 dims = 128
-dilateReps = 2
-erodeReps = 1
+dilateReps = 3
+erodeReps = 2
+gaussianFilter = False
+medianFilter = True
 
 def read_binvox(path, shape=(dims, dims, dims), fix_coords=True):
     voxel = None
@@ -35,13 +37,21 @@ def main():
     outputPathArray = inputPath.split(".")
     for i in range(0, len(outputPathArray)-1):
         url += outputPathArray[i]
-    url += "_erode.binvox"
+    url += "_filter.binvox"
    
     if (dilateReps > 0):
         print("Dilating...")
         for i in range(0, dilateReps):
             nd.binary_dilation(bv.data.copy(), output=bv.data)
 
+	if (gaussianFilter):
+	    print("Gaussian filter")
+	    nd.gaussian_filter(bv.data.copy(), sigma=0.1, output=bv.data)
+	
+	if (medianFilter):
+	    print("Median filter")
+	    nd.median_filter(bv.data.copy(), size=4, output=bv.data)
+    
     if (erodeReps > 0):
         print("Eroding...")
         for i in range(0, erodeReps):

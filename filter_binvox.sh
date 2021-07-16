@@ -12,9 +12,9 @@ cd $DIR
 
 INPUT_DIR=$DIR/input
 
-rm $INPUT_DIR/*erode.binvox
+rm $INPUT_DIR/*filter.binvox
 
 for INPUT in $INPUT_DIR/*.binvox
 do
-  python erode_binvox.py -- $INPUT
+  python filter_binvox.py -- $INPUT
 done
