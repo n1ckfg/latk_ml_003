@@ -43,15 +43,16 @@ def main():
         url += outputPathArray[i]
     url += "_filter.binvox"
    
+    # filters
     if (dilateReps > 0):
         print("Dilating...")
         for i in range(0, dilateReps):
             nd.binary_dilation(bv.data.copy(), output=bv.data)
 
     if (sobelReps > 0):
-    	print ("Sobel filter...")
-    	for i in range(0, sobelReps):
-    		nd.sobel(bv.data.copy(), output=bv.data)
+        print ("Sobel filter...")
+        for i in range(0, sobelReps):
+            nd.sobel(bv.data.copy(), output=bv.data)
 
     if (gaussianSigma > 0):
         print("Gaussian filter")
@@ -62,9 +63,9 @@ def main():
         nd.median_filter(bv.data.copy(), size=medianSize, output=bv.data)
     
     if (laplaceReps > 0):
-    	print("Laplace filter...")
-    	for i in range(0, laplaceReps):
-    		nd.laplace(bv.data.copy(), output=bv.data)
+        print("Laplace filter...")
+        for i in range(0, laplaceReps):
+            nd.laplace(bv.data.copy(), output=bv.data)
 
     if (erodeReps > 0):
         print("Eroding...")
