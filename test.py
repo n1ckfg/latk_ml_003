@@ -27,7 +27,6 @@ import h5py
 import binvox_rw
 
 def test():
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
     parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
@@ -46,9 +45,7 @@ def test():
     parser.add_argument("--disc_update", type=int, default=5, help="only update discriminator every n iter")
     parser.add_argument("--d_threshold", type=int, default=.8, help="discriminator threshold")
     parser.add_argument("--threshold", type=int, default=-1, help="threshold during sampling, -1: No thresholding")
-    parser.add_argument(
-        "--sample_interval", type=int, default=1, help="interval between sampling of images from generators"
-    )
+    parser.add_argument("--sample_interval", type=int, default=1, help="interval between sampling of images from generators")
     parser.add_argument("--checkpoint_interval", type=int, default=50, help="interval between model checkpoints") #-1
     opt = parser.parse_args()
     print(opt)
@@ -169,7 +166,6 @@ def test():
 
 
 if __name__ == '__main__':
-
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     test()
