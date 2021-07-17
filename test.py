@@ -82,8 +82,8 @@ def test():
         # Load pretrained models
     #generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
     #discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
-    generator.load_state_dict(torch.load("models/generator_200.pth"))
-    discriminator.load_state_dict(torch.load("models/discriminator_200.pth"))
+    generator.load_state_dict(torch.load("model/generator_200.pth"))
+    discriminator.load_state_dict(torch.load("model/discriminator_200.pth"))
     #else:
         # Initialize weights
         #generator.apply(weights_init_normal)
