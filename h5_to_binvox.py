@@ -11,13 +11,13 @@ def read_h5(path):
 
     return voxel
 
-def write_binvox(data, path):
+def write_binvox(data, path, dims=128):
     data = np.rint(data).astype(np.uint8)
-    dims = (128, 128, 128) #data.shape
+    shape = (dims, dims, dims) #data.shape
     translate = [0, 0, 0]
     scale = 1.0
     axis_order = 'xzy'
-    v = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
+    v = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
     with open(path, 'bw') as f:
         v.write(f)
@@ -27,6 +27,7 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath = argv[0]
+    dims = int(argv[1])
 
     print("Reading from : " + inputPath)
     data = read_h5(inputPath)
@@ -38,6 +39,6 @@ def main():
     url += ".binvox"
 
     print("Writing to: " + url)
-    write_binvox(data, url)
+    write_binvox(data, url, dims)
 
 main()

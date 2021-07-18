@@ -10,9 +10,11 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
-INPUT_DIR="input"
+INPUT_DIR=$1
+DIMS=$2
+FILTER=$3
 
 for INPUT in "$DIR/$INPUT_DIR"/*.ply
 do
-  python mesh_converter.py -- $INPUT
+  python mesh_converter.py -- $INPUT $DIMS $FILTER 
 done

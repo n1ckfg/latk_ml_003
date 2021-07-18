@@ -21,10 +21,9 @@ def resize(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
-def read_binvox(path, shape=(128,128,128), fix_coords=True):
-    """
-    read voxel data from .binvox file
-    """
+def read_binvox(path, dims=128, fix_coords=True):
+	shape=(dims, dims, dims)
+
     with open(path, 'rb') as f:
         voxel = binvox_rw.read_as_3d_array(f, fix_coords)
     
@@ -35,8 +34,8 @@ def read_binvox(path, shape=(128,128,128), fix_coords=True):
     return voxel_data
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-def convert_h5(in_path, out_path):
-    data = read_binvox(in_path)
+def convert_h5(in_path, out_path, dims=128):
+    data = read_binvox(in_path, dims)
     f = h5py.File(out_path, 'w')
     # more compression options: https://docs.h5py.org/en/stable/high/dataset.html
     f.create_dataset('data', data = data, compression='gzip')
@@ -50,6 +49,7 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath = argv[0]
+    dims = int(argv[1])
 
     print("Reading from : " + inputPath)
 
@@ -60,6 +60,6 @@ def main():
     url += ".im"
 
     print("Writing to: " + url)
-    convert_h5(inputPath, url)
+    convert_h5(inputPath, url, dims)
 
 main()

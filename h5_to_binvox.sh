@@ -10,9 +10,10 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
-INPUT_DIR="input"
+INPUT_DIR=$1
+DIMS=$2
 
-for INPUT in "$DIR/$INPUT_DIR"/*.binvox
+for INPUT in "$INPUT_DIR"/*.binvox
 do
-  python h5_to_binvox.py -- $INPUT
+  python h5_to_binvox.py -- $INPUT $DIMS
 done
