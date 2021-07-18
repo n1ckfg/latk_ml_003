@@ -59,7 +59,7 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath = argv[0]
-    dims = argv[1]
+    dims = int(argv[1])
     doFilter = bool(distutils.util.strtobool(argv[2]))
     meshToBinvox(url=inputPath, dims=dims, doFilter=doFilter)
 
