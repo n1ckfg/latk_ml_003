@@ -4,11 +4,6 @@ import scipy.ndimage as nd
 import h5py
 import binvox_rw
 
-argv = sys.argv
-argv = argv[argv.index("--") + 1:] # get all args after "--"
-
-inputPath = argv[0]
-
 def read_h5(path):
     f = h5py.File(path, 'r')
     voxel = f['data'][:]
@@ -28,6 +23,11 @@ def write_binvox(data, path):
         v.write(f)
 
 def main():
+    argv = sys.argv
+    argv = argv[argv.index("--") + 1:] # get all args after "--"
+
+    inputPath = argv[0]
+
     print("Reading from : " + inputPath)
     data = read_h5(inputPath)
 

@@ -1,3 +1,4 @@
+import sys
 import trimesh
 import binvox_rw
 import numpy as np
@@ -28,9 +29,9 @@ def meshToBinvox(url, dim=128, axis='xyz'):
         z = int(vert[2])
         data[x][y][z] = True
 
-    for i in range(0, 4): # 1
+    for i in range(0, 1): # 1
         nd.binary_dilation(bv.data.copy(), output=bv.data)
-    '''
+
     for i in range(0, 3): # 3
         nd.sobel(bv.data.copy(), output=bv.data)
 
@@ -41,7 +42,6 @@ def meshToBinvox(url, dim=128, axis='xyz'):
 
     for i in range(0, 0): # 0
         nd.binary_erosion(bv.data.copy(), output=bv.data)
-    '''
 
     outputUrl = ""
     outputPathArray = url.split(".")
@@ -51,3 +51,12 @@ def meshToBinvox(url, dim=128, axis='xyz'):
 
     with open(outputUrl, 'wb') as f:
         bv.write(f)
+
+def main():
+    argv = sys.argv
+    argv = argv[argv.index("--") + 1:] # get all args after "--"
+
+    inputPath = argv[0]
+    meshToBinvox(inputPath)
+
+main()

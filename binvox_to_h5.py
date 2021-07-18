@@ -9,11 +9,6 @@ import scipy.ndimage as nd
 import h5py
 import binvox_rw
 
-argv = sys.argv
-argv = argv[argv.index("--") + 1:] # get all args after "--"
-
-inputPath = argv[0]
-
 def resize(voxel, shape):
     """
     resize voxel shape
@@ -51,6 +46,11 @@ def convert_h5(in_path, out_path):
     return out_path
 
 def main():
+    argv = sys.argv
+    argv = argv[argv.index("--") + 1:] # get all args after "--"
+
+    inputPath = argv[0]
+
     print("Reading from : " + inputPath)
 
     url = ""
