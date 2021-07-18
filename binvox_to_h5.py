@@ -22,7 +22,7 @@ def resize(voxel, shape):
     return voxel
 
 def read_binvox(path, dims=128, fix_coords=True):
-	shape=(dims, dims, dims)
+    shape=(dims, dims, dims)
 
     with open(path, 'rb') as f:
         voxel = binvox_rw.read_as_3d_array(f, fix_coords)
