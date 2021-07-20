@@ -28,7 +28,7 @@ import binvox_rw
 
 def test():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
+    parser.add_argument("--epoch", type=int, default=200, help="epoch to start training from")
     parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
     parser.add_argument("--dataset_name", type=str, default="leftkidney_3d", help="name of the dataset")
     parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
@@ -79,8 +79,8 @@ def test():
         # Load pretrained models
     #generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
     #discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
-    generator.load_state_dict(torch.load("model/generator_200.pth"))
-    discriminator.load_state_dict(torch.load("model/discriminator_200.pth"))
+    generator.load_state_dict(torch.load("model/generator_" + str(opt.epoch) + ".pth"))
+    discriminator.load_state_dict(torch.load("model/discriminator_" + str(opt.epoch) + ".pth"))
     #else:
         # Initialize weights
         #generator.apply(weights_init_normal)
