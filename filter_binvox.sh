@@ -13,7 +13,7 @@ cd $DIR
 INPUT_DIR=$1
 DIMS=$2
 
-rm $INPUT_DIR/*filter.binvox
+#rm $INPUT_DIR/*filter.binvox
 
 for INPUT in $INPUT_DIR/*.binvox
 do

@@ -16,7 +16,7 @@ medianSize = 4 #3
 sobelReps = 0 #0
 laplaceReps = 0 #0
 
-def read_binvox(path, shape=(dims, dims, dims), fix_coords=True):
+def read_binvox(path, fix_coords=True):
     voxel = None
     with open(path, 'rb') as f:
         voxel = binvox_rw.read_as_3d_array(f, fix_coords)
