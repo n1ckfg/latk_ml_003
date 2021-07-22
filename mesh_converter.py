@@ -25,7 +25,7 @@ def meshToBinvox(url, dims=128, doFilter=False, axis='xyz'):
     verts = scale_numpy_array(mesh.vertices, 0, dims-1)
 
     for vert in verts:
-        x = int(vert[0])
+        x = dims - 1 - int(vert[0])
         y = int(vert[1])
         z = int(vert[2])
         data[x][y][z] = True

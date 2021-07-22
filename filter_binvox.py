@@ -16,12 +16,12 @@ inputPath = argv[0]
 dims = 128
 
 # filters
-dilateReps = 0 #3
-erodeReps = 2 #2
+dilateReps = 1 #3
+erodeReps = 1 #2
 gaussianSigma = 0 #0
 medianSize = 4 #3
-sobelReps = 2 #0
-laplaceReps = 1 #0
+sobelReps = 0 #0
+laplaceReps = 0 #0
 
 def read_binvox(path, shape=(dims, dims, dims), fix_coords=True):
     voxel = None
