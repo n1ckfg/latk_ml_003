@@ -27,10 +27,10 @@ def write_binvox(data, url):
         data.write(f)
 
 def main():
-	argv = sys.argv
-	argv = argv[argv.index("--") + 1:] # get all args after "--"
+    argv = sys.argv
+    argv = argv[argv.index("--") + 1:] # get all args after "--"
 
-	inputPath = argv[0]
+    inputPath = argv[0]
     dims = int(argv[1])
 
     print("Reading from : " + inputPath)
