@@ -109,8 +109,8 @@ def test():
     val_dataloader = DataLoader(
         CTDataset("input/", transforms_=transforms_, isTest=True),
         batch_size=1,
-        shuffle=True,
-        num_workers=1,
+        shuffle=False,
+        num_workers=0,
     )
 
     # Tensor type
