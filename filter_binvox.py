@@ -8,13 +8,6 @@ import numpy as np
 import scipy.ndimage as nd
 import binvox_rw
 
-argv = sys.argv
-argv = argv[argv.index("--") + 1:] # get all args after "--"
-
-inputPath = argv[0]
-
-dims = 128
-
 # filters
 dilateReps = 1 #3
 erodeReps = 1 #2
@@ -34,6 +27,12 @@ def write_binvox(data, url):
         data.write(f)
 
 def main():
+	argv = sys.argv
+	argv = argv[argv.index("--") + 1:] # get all args after "--"
+
+	inputPath = argv[0]
+    dims = int(argv[1])
+
     print("Reading from : " + inputPath)
     bv = read_binvox(inputPath)
 

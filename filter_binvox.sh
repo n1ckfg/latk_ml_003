@@ -10,11 +10,12 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
-INPUT_DIR=$DIR/input
+INPUT_DIR=$1
+DIMS=$2
 
 rm $INPUT_DIR/*filter.binvox
 
 for INPUT in $INPUT_DIR/*.binvox
 do
-  python filter_binvox.py -- $INPUT
+  python filter_binvox.py -- $INPUT $DIMS
 done
