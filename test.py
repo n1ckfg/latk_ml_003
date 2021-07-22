@@ -127,9 +127,12 @@ def test():
         with open(path, 'bw') as f:
             v.write(f)
 
+    dataiter = iter(val_dataloader)
+
     def sample_voxel_volumes(epoch):
+        imgs = dataiter.next()
+
         """Saves a generated sample from the validation set"""
-        imgs = next(iter(val_dataloader))
         real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
         #real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
         fake_B = generator(real_A)
@@ -166,6 +169,8 @@ def test():
 
 
 if __name__ == '__main__':
+    dataiter = None
+
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     test()

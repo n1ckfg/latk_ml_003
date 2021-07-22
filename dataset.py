@@ -10,6 +10,8 @@ class CTDataset(Dataset):
         self.isTest = isTest
         #self.samples = ['../..'+x.split('.')[4] for x in glob.glob(self.datapath + '/*.im')]
         self.samples = [x.split('.')[0] for x in glob.glob(self.datapath + '/*.im')]
+        if (self.isTest == True):
+        	self.samples.sort()
 
     def __len__(self):
         return len(self.samples)
