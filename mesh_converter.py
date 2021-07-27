@@ -20,7 +20,7 @@ def binvoxToMesh(url, dims=128, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([x, y, z])
+                    verts.append([dims-1-z, y, x])
     mesh = trimesh.Trimesh(vertices=verts, process=False)
     newMeshUrl = changeExtension(url, "ply", "_post")
     mesh.export(newMeshUrl)
