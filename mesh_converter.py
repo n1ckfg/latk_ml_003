@@ -23,6 +23,8 @@ def meshToBinvox(url, dims=128, doFilter=False, axis='xyz'):
 
     mesh = trimesh.load(url)
     verts = scale_numpy_array(mesh.vertices, 0, dims-1)
+    normMeshUrl = changeExtension(url, "ply", "_normalized")
+    mesh.export(normMeshUrl)
 
     for vert in verts:
         x = dims - 1 - int(vert[0])
@@ -45,14 +47,18 @@ def meshToBinvox(url, dims=128, doFilter=False, axis='xyz'):
         for i in range(0, 0): # 0
             nd.binary_erosion(bv.data.copy(), output=bv.data)
 
-    outputUrl = ""
-    outputPathArray = url.split(".")
-    for i in range(0, len(outputPathArray)-1):
-        outputUrl += outputPathArray[i]
-    outputUrl += ".binvox"
+    outputUrl = changeExtension(url, "binvox")
 
     with open(outputUrl, 'wb') as f:
         bv.write(f)
+
+def changeExtension(_url, _newExt, _append=""):
+    returns = ""
+    returnsPathArray = _url.split(".")
+    for i in range(0, len(returnsPathArray)-1):
+        returns += returnsPathArray[i]
+    returns += _append + "." + _newExt
+    return returns
 
 def main():
     argv = sys.argv
