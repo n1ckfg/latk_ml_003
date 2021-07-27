@@ -1,9 +1,7 @@
-import sys
 import trimesh
 import binvox_rw
 import numpy as np
 import scipy.ndimage as nd
-import distutils.util
 
 # https://stackoverflow.com/questions/19299155/normalize-a-vector-of-3d-coordinates-to-be-in-between-0-and-1/19301193
 def scale_numpy_array(arr, min_v, max_v):
@@ -12,6 +10,20 @@ def scale_numpy_array(arr, min_v, max_v):
     min_range = min(new_range)
     scaled_unit = (max_range - min_range) / (np.max(arr) - np.min(arr))
     return arr*scaled_unit - np.min(arr)*scaled_unit + min_range
+
+def binvoxToMesh(url, dims=128, axis='xyz'):
+    voxel = None
+    with open(url, 'rb') as f:
+        voxel = binvox_rw.read_as_3d_array(f, True) # fix coords
+    verts = []
+    for x in range(0, dims):
+        for y in range(0, dims):
+            for z in range(0, dims):
+                if (voxel.data[x][y][z] == True):
+                    verts.append([x, y, z])
+    mesh = trimesh.Trimesh(vertices=verts, process=False)
+    newMeshUrl = changeExtension(url, "ply", "_post")
+    mesh.export(newMeshUrl)
 
 def meshToBinvox(url, dims=128, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
@@ -23,8 +35,9 @@ def meshToBinvox(url, dims=128, doFilter=False, axis='xyz'):
 
     mesh = trimesh.load(url)
     verts = scale_numpy_array(mesh.vertices, 0, dims-1)
-    normMeshUrl = changeExtension(url, "ply", "_normalized")
-    mesh.export(normMeshUrl)
+    mesh.vertices = verts
+    newMeshUrl = changeExtension(url, "ply", "_pre")
+    mesh.export(newMeshUrl)
 
     for vert in verts:
         x = dims - 1 - int(vert[0])
@@ -60,13 +73,3 @@ def changeExtension(_url, _newExt, _append=""):
     returns += _append + "." + _newExt
     return returns
 
-def main():
-    argv = sys.argv
-    argv = argv[argv.index("--") + 1:] # get all args after "--"
-
-    inputPath = argv[0]
-    dims = int(argv[1])
-    doFilter = bool(distutils.util.strtobool(argv[2]))
-    meshToBinvox(url=inputPath, dims=dims, doFilter=doFilter)
-
-main()

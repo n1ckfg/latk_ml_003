@@ -12,9 +12,8 @@ cd $DIR
 
 INPUT_DIR=$1
 DIMS=$2
-FILTER=$3
 
-for INPUT in "$DIR/$INPUT_DIR"/*.ply
+for INPUT in "$INPUT_DIR"/*.binvox
 do
-  python mesh_converter.py -- $INPUT $DIMS $FILTER 
+  python binvox_to_mesh.py -- $INPUT $DIMS
 done
