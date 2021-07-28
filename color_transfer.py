@@ -10,7 +10,7 @@ def main():
     newPathBase = os.path.basename(inputPath1)
     newPathBase = newPathBase.split("_pre")[0]
     inputPath2 = os.path.join(argv[1], newPathBase + "_fake_filter_post_edges.ply")
-    outputPath = os.path.join(argv[1], newPathBase + "_final.ply")
+    outputPath = os.path.join(argv[1], newPathBase + "_final.obj")
 
     ms = ml.MeshSet()
     ms.load_new_mesh(inputPath1)
