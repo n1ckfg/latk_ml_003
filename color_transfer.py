@@ -7,7 +7,8 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath1 = argv[0]
-    newPathBase = os.path.basename(inputPath1)[:-4]
+    newPathBase = os.path.basename(inputPath1)
+    newPathBase = newPathBase.split("_pre")[0]
     inputPath2 = os.path.join(argv[1], newPathBase + "_fake_filter_post_edges.ply")
     outputPath = os.path.join(argv[1], newPathBase + "_final.ply")
 

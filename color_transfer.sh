@@ -13,7 +13,7 @@ cd $DIR
 SOURCE_DIR=$1
 DEST_DIR=$2
 
-for INPUT in "$SOURCE_DIR"/*_pre.ply
+for INPUT in "$DIR/$SOURCE_DIR"/*_pre.ply
 do
-  python color_transfer.py -- $INPUT $DEST_DIR
+  python color_transfer.py -- $INPUT $DIR/$DEST_DIR
 done
