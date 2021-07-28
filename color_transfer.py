@@ -8,8 +8,8 @@ def main():
 
     inputPath1 = argv[0]
     newPathBase = os.path.basename(inputPath1)
-    newPathBase = newPathBase.split("_pre")[0]
-    inputPath2 = os.path.join(argv[1], newPathBase + "_fake_filter_post_edges.ply")
+    newPathBase = newPathBase.split("_resample_pre")[0]
+    inputPath2 = os.path.join(argv[1], newPathBase + "_resample_fake_filter_post_edges.ply")
     outputPath = os.path.join(argv[1], newPathBase + "_final.obj")
 
     ms = ml.MeshSet()
