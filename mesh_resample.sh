@@ -11,10 +11,10 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 INPUT_DIR=$1
-DIMS=$2
-FILTER=$3
+PERCENTAGE=$2
+OUTPUT_FORMAT=$3
 
-for INPUT in "$INPUT_DIR"/*resample.ply
+for INPUT in "$DIR/$INPUT_DIR"/*.ply
 do
-  python mesh_to_binvox.py -- $INPUT $DIMS $FILTER 
+  python mesh_resample.py -- $INPUT $PERCENTAGE $OUTPUT_FORMAT 
 done
