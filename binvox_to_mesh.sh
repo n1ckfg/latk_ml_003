@@ -13,7 +13,7 @@ cd $DIR
 INPUT_DIR=$1
 DIMS=$2
 
-for INPUT in "$INPUT_DIR"/*.binvox
+for INPUT in "$INPUT_DIR"/*filter.binvox
 do
   python binvox_to_mesh.py -- $INPUT $DIMS
 done

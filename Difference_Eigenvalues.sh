@@ -12,7 +12,7 @@ cd $DIR
 
 INPUT_DIR=$1
 
-for INPUT in "$INPUT_DIR"/*.ply
+for INPUT in "$INPUT_DIR"/*filter.ply
 do
   python3 Difference_Eigenvalues.py -- $INPUT 
 done
