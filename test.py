@@ -129,7 +129,7 @@ def test():
 
     dataiter = iter(val_dataloader)
 
-    def sample_voxel_volumes(epoch):
+    def sample_voxel_volumes(index):
         imgs = dataiter.next()
 
         """Saves a generated sample from the validation set"""
@@ -142,11 +142,11 @@ def test():
         #real_B = real_B.cpu().detach().numpy()
         fake_B = fake_B.cpu().detach().numpy()
 
-        image_folder = "output/%s_%s_" % (opt.dataset_name, epoch)
+        image_folder = "output" #/%s_%s_" % (opt.dataset_name, index)
 
         #write_binvox(real_A, image_folder + 'real_A.binvox')
 
-        write_binvox(fake_B, image_folder + 'fake.binvox')
+        write_binvox(fake_B, os.path.join(image_folder, os.path.basename(imgs["url"]) + "_fake.binvox"))
 
     for i, batch in enumerate(val_dataloader):
       sample_voxel_volumes(i)

@@ -25,9 +25,9 @@ class CTDataset(Dataset):
             if self.transforms:
                 image, mask = self.transforms(image), self.transforms(mask)
             
-            return {"A": image, "B": mask}
+            return { "A": image, "B": mask }
         else:
             if self.transforms:
                 image = self.transforms(image)
             
-            return {"A": image, "B": image}            
+            return { "A": image, "B": image, "url": self.samples[idx] }            
