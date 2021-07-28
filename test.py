@@ -146,7 +146,7 @@ def test():
 
         #write_binvox(real_A, image_folder + 'real_A.binvox')
 
-        write_binvox(fake_B, os.path.join(image_folder, os.path.basename(imgs["url"]) + "_fake.binvox"))
+        write_binvox(fake_B, os.path.join(image_folder, os.path.basename(imgs["url"][0]) + "_fake.binvox"))
 
     for i, batch in enumerate(val_dataloader):
       sample_voxel_volumes(i)
