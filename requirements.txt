@@ -9,3 +9,5 @@ scikit-image
 pyvista
 h5py
 trimesh
+pyntcloud
+pymeshlab
