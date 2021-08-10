@@ -11,10 +11,12 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 INPUT_DIR=$1
-DIMS=$2
-FILTER=$3
+INPUT_EXT=$2
+OUTPUT_EXT=$3
+DIMS=$4
+FILTER=$5
 
-for INPUT in "$INPUT_DIR"/*resample.ply
+for INPUT in "$INPUT_DIR"/*"$INPUT_EXT"
 do
-  python mesh_to_binvox.py -- $INPUT $DIMS $FILTER 
+  python mesh_to_binvox.py -- $INPUT $OUTPUT_EXT $DIMS $FILTER 
 done

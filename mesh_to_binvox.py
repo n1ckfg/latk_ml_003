@@ -7,9 +7,10 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath = argv[0]
-    dims = int(argv[1])
-    doFilter = bool(distutils.util.strtobool(argv[2]))
+    inputExt = argv[1]
+    dims = int(argv[2])
+    doFilter = bool(distutils.util.strtobool(argv[3]))
 
-    mc.meshToBinvox(url=inputPath, dims=dims, doFilter=doFilter)
+    mc.meshToBinvox(url=inputPath, ext=inputExt, dims=dims, doFilter=doFilter)
 
 main()
