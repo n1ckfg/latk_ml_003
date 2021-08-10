@@ -16,7 +16,7 @@ def main():
 
     inputPath = argv[0]
     samplePercentage = float(argv[1])
-    outputFormat = argv[2].lower()
+    outputFormat = argv[2]
 
     outputPath = changeExtension(inputPath, outputFormat)
 
