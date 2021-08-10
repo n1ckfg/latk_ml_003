@@ -12,9 +12,10 @@ cd $DIR
 
 INPUT_DIR=$1
 PERCENTAGE=$2
-OUTPUT_FORMAT=$3
+INPUT_FORMAT=$3
+OUTPUT_FORMAT=$4
 
-for INPUT in "$DIR/$INPUT_DIR"/*.ply
+for INPUT in "$DIR/$INPUT_DIR"/*."$INPUT_FORMAT"
 do
   python mesh_resample.py -- $INPUT $PERCENTAGE $OUTPUT_FORMAT 
 done

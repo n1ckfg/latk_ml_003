@@ -2,12 +2,12 @@ import sys
 import os
 import pymeshlab as ml
 
-def changeExtension(_url, _newExt, _append=""):
+def changeExtension(_url, _newExt):
     returns = ""
     returnsPathArray = _url.split(".")
     for i in range(0, len(returnsPathArray)-1):
         returns += returnsPathArray[i]
-    returns += _append + "." + _newExt
+    returns += _newExt
     return returns
 
 def main():
@@ -18,7 +18,7 @@ def main():
     samplePercentage = float(argv[1])
     outputFormat = argv[2].lower()
 
-    outputPath = changeExtension(inputPath, outputFormat, "_resample")
+    outputPath = changeExtension(inputPath, outputFormat)
 
     ms = ml.MeshSet()
     ms.load_new_mesh(inputPath)
