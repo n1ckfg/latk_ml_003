@@ -12,8 +12,10 @@ cd $DIR
 
 SOURCE_DIR=$1
 DEST_DIR=$2
+SOURCE_EXT=$3
+DEST_EXT=$4
 
 for INPUT in "$DIR/$SOURCE_DIR"/*_pre.ply
 do
-  python color_transfer.py -- $INPUT $DIR/$DEST_DIR
+  python color_transfer.py -- "$INPUT" "$DIR"/"$DEST_DIR" "$SOURCE_EXT" "$DEST_EXT"
 done
