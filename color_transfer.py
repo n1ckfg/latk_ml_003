@@ -8,8 +8,8 @@ def main():
 
     inputPath1 = argv[0]
     newPathBase = os.path.basename(inputPath1)
-    newPathBase = newPathBase.split(argv[2])[0]
-    inputPath2 = os.path.join(argv[1], newPathBase + argv[3])
+    newPathBase = newPathBase.split("_")[0]
+    inputPath2 = os.path.join(argv[1], newPathBase + argv[2])
     outputPath = os.path.join(argv[1], newPathBase + "_final.obj")
 
     ms = ml.MeshSet()
