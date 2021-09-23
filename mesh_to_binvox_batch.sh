@@ -16,6 +16,6 @@ OUTPUT_EXT=$3
 DIMS=$4
 FILTER=$5
 
-INPUT="$INPUT_DIR"/*"$INPUT_EXT"
+INPUT="$INPUT_DIR/*$INPUT_EXT"
 python mesh_to_binvox_batch.py -- $INPUT $OUTPUT_EXT $DIMS $FILTER 
 
