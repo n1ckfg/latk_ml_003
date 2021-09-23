@@ -17,5 +17,5 @@ DIMS=$4
 FILTER=$5
 
 INPUT="$INPUT_DIR/*$INPUT_EXT"
-python mesh_to_binvox_batch.py -- $INPUT $OUTPUT_EXT $DIMS $FILTER 
+python mesh_to_binvox_batch.py -- $INPUT_DIR $INPUT_EXT $DIMS $FILTER 
 
