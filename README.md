@@ -1,3 +1,5 @@
+<img src="./docs/train_test_example_210715.jpg">
+
 # vox2vox
 Pytorch implementation of vox2vox, a 3D volume-to-volume generative adversarial network proposed by [M. Cirillo, D. Abramian and A. Eklund](https://arxiv.org/abs/2003.13653)
 
