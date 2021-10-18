@@ -73,8 +73,13 @@ def main():
     seqMax = (seqMaxX, seqMaxY, seqMaxZ).sort()[2]
 
     for dims in localDims:
-        min = (dims[0], dims[2], dims[4]).sort()[0]
-        max = (dims[1], dims[3], dims[5]).sort()[2]
+        minVal = (dims[0], dims[2], dims[4]).sort()[0]
+        maxVal = (dims[1], dims[3], dims[5]).sort()[2]
+
+	    percentage = (minVal / seqMin, maxVal / seqMax)
+	    print(percentage)
+	    
+	    localPercentages.append(percentage)
 
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
