@@ -69,12 +69,20 @@ def main():
             if (maxZ > seqMaxZ):
                 seqMaxZ = maxZ
 
-    seqMin = [seqMinX, seqMinY, seqMinZ].sort()[0]
-    seqMax = [seqMaxX, seqMaxY, seqMaxZ].sort()[2]
+    seqMinArray = [seqMinX, seqMinY, seqMinZ]
+    seqMinArray.sort()
+    seqMin = seqMinArray[0]
+    seqMaxArray = [seqMaxX, seqMaxY, seqMaxZ]
+    seqMaxArray.sort()
+    seqMax = seqMaxArray[2]
 
     for dims in localDims:
-        minVal = [dims[0], dims[2], dims[4]].sort()[0]
-        maxVal = [dims[1], dims[3], dims[5]].sort()[2]
+        minValArray = [dims[0], dims[2], dims[4]]
+        minValArray.sort()
+        minVal = minValArray[0]
+        maxValArray = [dims[1], dims[3], dims[5]]
+        maxValArray.sort()
+        maxVal = maxValArray[2]
 
         percentage = (minVal / seqMin, maxVal / seqMax)
         print(percentage)
