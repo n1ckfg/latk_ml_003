@@ -56,7 +56,7 @@ def binvoxToMesh(url, ext="_post.ply", dims=128, axis='xyz'):
     newMeshUrl = changeExtension(url, ext)
     mesh.export(newMeshUrl)
 
-def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, axis='xyz'):
+def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, dimVals=None, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
     translate = (0, 0, 0)
@@ -65,9 +65,8 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, a
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
     mesh = trimesh.load(url)
-    verts = None
 
-    if (normVals != None):
+    if (normVals != None and dimVals !=None):
         dimMinX = int((dims-1) * normVals[0])
         dimMaxX = int((dims-1) * normVals[1])
         dimMinY = int((dims-1) * normVals[2])
@@ -75,11 +74,12 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, a
         dimMinZ = int((dims-1) * normVals[4])
         dimMaxZ = int((dims-1) * normVals[5])
 
-        verts = scale_numpy_array_axes(mesh.vertices, (dimMinX, dimMaxX), (dimMinY, dimMaxY), (dimMinZ, dimMaxZ))
+        for vert in mesh.vertices:
+            vert[0] = remap(vert[0], dimVals[0], dimVals[1], dimMinX, dimMaxX)
+            vert[1] = remap(vert[1], dimVals[2], dimVals[3], dimMinY, dimMaxY)
+            vert[2] = remap(vert[2], dimVals[4], dimVals[5], dimMinZ, dimMaxZ)
     else:
-        verts = scale_numpy_array(mesh.vertices, 0, dims-1)
-    
-    mesh.vertices = verts
+        mesh.vertices = scale_numpy_array(mesh.vertices, 0, dims-1)
 
     newMeshUrl = changeExtension(url, ext)
     mesh.export(newMeshUrl)

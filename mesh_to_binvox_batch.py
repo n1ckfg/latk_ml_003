@@ -101,7 +101,7 @@ def main():
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
             url = os.path.join(inputPath, fileName)
-            mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[counter])
+            mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[counter], dimVals=localDims[counter])
             counter += 1
 
 main()
