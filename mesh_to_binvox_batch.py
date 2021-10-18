@@ -2,6 +2,7 @@ import sys
 import os
 import distutils.util
 import mesh_converter as mc
+import trimesh
 
 def main():
     argv = sys.argv
@@ -12,6 +13,68 @@ def main():
     outputExt = argv[2]
     dims = int(argv[3])
     doFilter = bool(distutils.util.strtobool(argv[4]))
+
+    seqMinX = 0
+    seqMaxX = 0
+    seqMinY = 0
+    seqMaxY = 0
+    seqMinZ = 0
+    seqMaxZ = 0
+
+    seqMin = 0
+    seqMax = 0
+
+    localDims = []
+    localPercentages = []
+
+    for fileName in os.listdir(inputPath):
+        if fileName.endswith(inputExt): 
+            url = os.path.join(inputPath, fileName)
+            mesh = trimesh.load(url)
+            minX = 0
+            maxX = 0
+            minY = 0
+            maxY = 0
+            minZ = 0
+            maxZ = 0
+            for vert in mesh.vertices:
+                x = vert[0]
+                y = vert[1]
+                z = vert[2]
+                if (x < minX):
+                    minX = x
+                if (x > maxX):
+                    maxX = x
+                if (y < minY):
+                    minY = y
+                if (y > maxY):
+                    maxY = y
+                if (z < minZ):
+                    minZ = z
+                if (z > maxZ):
+                    maxZ = z
+
+            localDims.append((minX, maxX, minY, maxY, minZ, maxZ))
+
+            if (minX < seqMinX):
+                seqMinX = minX
+            if (maxX > seqMaxX):
+                seqMaxX = maxX
+            if (minY < seqMinY):
+                seqMinY = minY
+            if (maxY > seqMaxY):
+                seqMaxY = maxY
+            if (minZ < seqMinZ):
+                seqMinZ = minZ
+            if (maxZ > seqMaxZ):
+                seqMaxZ = maxZ
+
+    seqMin = (seqMinX, seqMinY, seqMinZ).sort()[0]
+    seqMax = (seqMaxX, seqMaxY, seqMaxZ).sort()[2]
+
+    for dims in localDims:
+        min = (dims[0], dims[2], dims[4]).sort()[0]
+        max = (dims[1], dims[3], dims[5]).sort()[2]
 
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
