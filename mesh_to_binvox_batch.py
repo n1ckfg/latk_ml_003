@@ -71,15 +71,28 @@ def main():
                 seqMaxZ = maxZ
 
     for localDim in localDims:
-        normMinX = 1.0 - (localDim.minX / seqMinX)
-        normMaxX = localDim.maxX / seqMaxX
-        normMinY = 1.0 - (localDim.minY / seqMinY)
-        normMaxY = localDim.maxY / seqMaxY
-        normMinZ = 1.0 - (localDim.minZ / seqMinZ)
-        normMaxZ = localDim.maxZ / seqMaxZ
+        normMinX = 0
+        normMaxX = 0
+        normMinY = 0
+        normMaxY = 0
+        normMinZ = 0
+        normMaxZ = 0
+
+        if (seqMinX > 0):
+            normMinX = 1.0 - (localDim[0] / seqMinX)
+        if (seqMaxX > 0):
+            normMaxX = localDim[1] / seqMaxX
+        if (seqMinY > 0):
+            normMinY = 1.0 - (localDim[2] / seqMinY)
+        if (seqMaxY > 0):
+            normMaxY = localDim[3] / seqMaxY
+        if (seqMinZ > 0):
+            normMinZ = 1.0 - (localDim[4] / seqMinZ)
+        if (seqMaxZ > 0):
+            normMaxZ = localDim[5] / seqMaxZ
 
         normVals = (normMinX, normMaxX, normMinY, normMaxY, normMinZ, normMaxZ)
-        print("Normalizing scale " + normVals)
+        print(normVals)
 
         localNorms.append(normVals)
 
