@@ -84,7 +84,7 @@ def main():
         maxValArray.sort()
         maxVal = maxValArray[2]
 
-        percentage = (minVal / seqMin, maxVal / seqMax)
+        percentage = (1.0 - (minVal / seqMin), maxVal / seqMax)
         print(percentage)
         
         localPercentages.append(percentage)
