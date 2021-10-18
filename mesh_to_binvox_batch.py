@@ -76,11 +76,11 @@ def main():
     seqMaxArray.sort()
     seqMax = seqMaxArray[2]
 
-    for dims in localDims:
-        minValArray = [dims[0], dims[2], dims[4]]
+    for localDim in localDims:
+        minValArray = [localDim[0], localDim[2], localDim[4]]
         minValArray.sort()
         minVal = minValArray[0]
-        maxValArray = [dims[1], dims[3], dims[5]]
+        maxValArray = [localDim[1], localDim[3], localDim[5]]
         maxValArray.sort()
         maxVal = maxValArray[2]
 
