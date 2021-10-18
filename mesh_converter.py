@@ -12,6 +12,7 @@ def scale_numpy_array(arr, min_v, max_v):
     return arr*scaled_unit - np.min(arr)*scaled_unit + min_range
 
 # https://codereview.stackexchange.com/questions/185785/scale-numpy-array-to-certain-range
+'''
 def interp(val, out_range):
     return out_range[0] * (1.0 - val) + out_range[1] * val
 
@@ -35,6 +36,7 @@ def scale_numpy_array_axes(arr, rangeX=(0, 1), rangeY=(0, 1), rangeZ=(0, 1)):
     returns = interp(uninterp(returns, domainZ), rangeZ)
 
     return returns
+'''
 
 def remap(value, min1, max1, min2, max2):
     range1 = max1 - min1
@@ -67,24 +69,17 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
     mesh = trimesh.load(url)
 
     if (normVals != None and dimVals !=None):
-        dimMinX = int((dims-1) * normVals[0])
-        dimMaxX = int((dims-1) * normVals[1])
-        dimMinY = int((dims-1) * normVals[2])
-        dimMaxY = int((dims-1) * normVals[3])
-        dimMinZ = int((dims-1) * normVals[4])
-        dimMaxZ = int((dims-1) * normVals[5])
-
         for vert in mesh.vertices:
-            vert[0] = remap(vert[0], dimVals[0], dimVals[1], dimMinX, dimMaxX)
-            vert[1] = remap(vert[1], dimVals[2], dimVals[3], dimMinY, dimMaxY)
-            vert[2] = remap(vert[2], dimVals[4], dimVals[5], dimMinZ, dimMaxZ)
+            vert[0] = remap(vert[0], dimVals[0], dimVals[1], dims * normVals[0], (dims * normVals[1]) - 1)
+            vert[1] = remap(vert[1], dimVals[2], dimVals[3], dims * normVals[2], (dims * normVals[3]) - 1)
+            vert[2] = remap(vert[2], dimVals[4], dimVals[5], dims * normVals[4], (dims * normVals[5]) - 1)
     else:
         mesh.vertices = scale_numpy_array(mesh.vertices, 0, dims-1)
 
     newMeshUrl = changeExtension(url, ext)
     mesh.export(newMeshUrl)
 
-    for vert in verts:
+    for vert in mesh.vertices:
         x = dims - 1 - int(vert[0])
         y = int(vert[1])
         z = int(vert[2])

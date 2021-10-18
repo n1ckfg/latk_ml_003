@@ -23,10 +23,12 @@ def main():
 
     localDims = []
     localNorms = []
+    urls = []
 
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
             url = os.path.join(inputPath, fileName)
+            urls.append(url)
             mesh = trimesh.load(url)
             
             minX = 0
@@ -35,27 +37,27 @@ def main():
             maxY = 0
             minZ = 0
             maxZ = 0
-            allX = []
-            allY = []
-            allZ = []
             
             for vert in mesh.vertices:
-                allX.append(vert[0])
-                allY.append(vert[1])
-                allZ.append(vert[2])
-            
-            allX.sort()
-            allX.sort()
-            allX.sort()
-            
-            minX = allX[0]
-            maxX = allX[len(allX)-1]
-            minY = allY[0]
-            maxY = allY[len(allY)-1]
-            minZ = allZ[0]
-            maxZ = allZ[len(allZ)-1]
+                x = vert[0]
+                y = vert[1]
+                z = vert[2]
+                if (x < minX):
+                    minX = x
+                if (x > maxX):
+                    maxX = x
+                if (y < minY):
+                    minY = y
+                if (y > maxY):
+                    maxY = y
+                if (z < minZ):
+                    minZ = z
+                if (z > maxZ):
+                    maxZ = z
 
-            localDims.append((minX, maxX, minY, maxY, minZ, maxZ))
+            localDim = (minX, maxX, minY, maxY, minZ, maxZ)
+            print(localDim)
+            localDims.append(localDim)
 
             if (minX < seqMinX):
                 seqMinX = minX
@@ -79,29 +81,24 @@ def main():
         normMaxZ = 0
 
         if (seqMinX > 0):
-            normMinX = 1.0 - (localDim[0] / seqMinX)
+            normMinX = abs(1.0 - (localDim[0] / seqMinX))
         if (seqMaxX > 0):
-            normMaxX = localDim[1] / seqMaxX
+            normMaxX = abs(localDim[1] / seqMaxX)
         if (seqMinY > 0):
-            normMinY = 1.0 - (localDim[2] / seqMinY)
+            normMinY = abs(1.0 - (localDim[2] / seqMinY))
         if (seqMaxY > 0):
-            normMaxY = localDim[3] / seqMaxY
+            normMaxY = abs(localDim[3] / seqMaxY)
         if (seqMinZ > 0):
-            normMinZ = 1.0 - (localDim[4] / seqMinZ)
+            normMinZ = abs(1.0 - (localDim[4] / seqMinZ))
         if (seqMaxZ > 0):
-            normMaxZ = localDim[5] / seqMaxZ
+            normMaxZ = abs(localDim[5] / seqMaxZ)
 
         normVals = (normMinX, normMaxX, normMinY, normMaxY, normMinZ, normMaxZ)
         print(normVals)
 
         localNorms.append(normVals)
 
-    counter = 0
-
-    for fileName in os.listdir(inputPath):
-        if fileName.endswith(inputExt): 
-            url = os.path.join(inputPath, fileName)
-            mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[counter], dimVals=localDims[counter])
-            counter += 1
+    for i, url in enumerate(urls):
+        mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[i], dimVals=localDims[i])
 
 main()
