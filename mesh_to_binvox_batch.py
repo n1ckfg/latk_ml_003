@@ -55,6 +55,8 @@ def main():
                 if (z > maxZ):
                     maxZ = z
 
+
+
             localDim = (minX, maxX, minY, maxY, minZ, maxZ)
             print(localDim)
             localDims.append(localDim)
@@ -73,25 +75,12 @@ def main():
                 seqMaxZ = maxZ
 
     for localDim in localDims:
-        normMinX = 0
-        normMaxX = 0
-        normMinY = 0
-        normMaxY = 0
-        normMinZ = 0
-        normMaxZ = 0
-
-        if (seqMinX > 0):
-            normMinX = abs(1.0 - (localDim[0] / seqMinX))
-        if (seqMaxX > 0):
-            normMaxX = abs(localDim[1] / seqMaxX)
-        if (seqMinY > 0):
-            normMinY = abs(1.0 - (localDim[2] / seqMinY))
-        if (seqMaxY > 0):
-            normMaxY = abs(localDim[3] / seqMaxY)
-        if (seqMinZ > 0):
-            normMinZ = abs(1.0 - (localDim[4] / seqMinZ))
-        if (seqMaxZ > 0):
-            normMaxZ = abs(localDim[5] / seqMaxZ)
+        normMinX = mc.remap(localDim[0], seqMinX, seqMaxX, 0, 1)
+        normMaxX = mc.remap(localDim[1], seqMinX, seqMaxX, 0, 1)
+        normMinY = mc.remap(localDim[2], seqMinY, seqMaxY, 0, 1)
+        normMaxY = mc.remap(localDim[3], seqMinY, seqMaxY, 0, 1)
+        normMinZ = mc.remap(localDim[4], seqMinZ, seqMaxZ, 0, 1)
+        normMaxZ = mc.remap(localDim[5], seqMinZ, seqMaxZ, 0, 1)
 
         normVals = (normMinX, normMaxX, normMinY, normMaxY, normMinZ, normMaxZ)
         print(normVals)
