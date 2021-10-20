@@ -12,7 +12,7 @@ cd $DIR
 
 INPUT_DIR=$1
 
-for INPUT in "$INPUT_DIR"/*resample_fake_filter_post.ply
+for INPUT in "$INPUT_DIR"/*.obj
 do
   python3 Difference_Eigenvalues.py -- $INPUT 
 done
