@@ -70,7 +70,6 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
     mesh = trimesh.load(url)
 
     if (normVals != None and dimVals !=None):
-        '''
         for vert in mesh.vertices:
             vert[0] = remap(vert[0], dimVals[0], dimVals[1], dims * normVals[0], (dims * normVals[1]) - 1)
             vert[1] = remap(vert[1], dimVals[2], dimVals[3], dims * normVals[2], (dims * normVals[3]) - 1)
@@ -93,6 +92,7 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
             vert[0] = vertsX[i]
             vert[1] = vertsY[i]
             vert[2] = vertsZ[i]
+        '''
     else:
         mesh.vertices = scale_numpy_array(mesh.vertices, 0, dims - 1)
 
