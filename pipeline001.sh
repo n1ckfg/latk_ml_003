@@ -18,7 +18,7 @@ echo "1.1. Resample point clouds."
 ./mesh_resample.sh "input" "0.1" ".obj" "_resample.ply"
 
 echo "1.2. Convert point clouds to voxel grids."
-./mesh_to_binvox_batch.sh "input" "_resample.ply" "_pre.ply" "$DIMS" "True" # *_pre.ply -> *.binvox
+./mesh_to_binvox_batch.sh "input" "_resample.ply" "_pre.ply" "$DIMS" "False" # *_pre.ply -> *.binvox
 ./binvox_to_h5.sh "input" "$DIMS" # *.binvox -> *.im
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
