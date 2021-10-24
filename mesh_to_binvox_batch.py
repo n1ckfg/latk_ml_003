@@ -42,7 +42,7 @@ def main():
             skipVertices = 2;
 
             for i in range(0, len(mesh.vertices), skipVertices):
-                vert = vertices[i]
+                vert = mesh.vertices[i]
 
                 x = vert[0]
                 y = vert[1]
