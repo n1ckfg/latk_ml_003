@@ -4,16 +4,13 @@ import numpy as np
 import scipy.ndimage as nd
 
 # https://stackoverflow.com/questions/19299155/normalize-a-vector-of-3d-coordinates-to-be-in-between-0-and-1/19301193
-def scale_numpy_array(arr, min_v, max_v, axis=None):
+def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
     max_range = max(new_range)
     min_range = min(new_range)
-    if (axis != None):
-        scaled_unit = (max_range - min_range) / (np.max(arr, axis=axis) - np.min(arr, axis=axis))
-        return arr * scaled_unit - np.min(arr, axis=axis) * scaled_unit + min_range
-    else:
-        scaled_unit = (max_range - min_range) / (np.max(arr) - np.min(arr))
-        return arr * scaled_unit - np.min(arr) * scaled_unit + min_range
+
+    scaled_unit = (max_range - min_range) / (np.max(arr) - np.min(arr))
+    return arr * scaled_unit - np.min(arr) * scaled_unit + min_range
 
 # https://codereview.stackexchange.com/questions/185785/scale-numpy-array-to-certain-range
 '''
@@ -88,9 +85,9 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
             vertsY.append(vert[1])
             vertsZ.append(vert[2])
 
-        vertsX = scale_numpy_array(np.array(vertsX), dims * normVals[0], dims * normVals[1] - 1, axis=0)
-        vertsY = scale_numpy_array(np.array(vertsY), dims * normVals[2], dims * normVals[3] - 1, axis=1)
-        vertsZ = scale_numpy_array(np.array(vertsZ), dims * normVals[4], dims * normVals[5] - 1, axis=2)
+        vertsX = scale_numpy_array(np.array(vertsX), dims * normVals[0], dims * normVals[1] - 1)
+        vertsY = scale_numpy_array(np.array(vertsY), dims * normVals[2], dims * normVals[3] - 1)
+        vertsZ = scale_numpy_array(np.array(vertsZ), dims * normVals[4], dims * normVals[5] - 1)
 
         for i, vert in enumerate(mesh.vertices):
             vert[0] = vertsX[i]
