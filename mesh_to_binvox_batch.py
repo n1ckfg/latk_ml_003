@@ -38,7 +38,12 @@ def main():
             minZ = 0
             maxZ = 0
             
-            for vert in mesh.vertices:
+            # We can get good-enough bounds counting only half the vertices
+            skipVertices = 2;
+
+            for i in range(0, len(mesh.vertices), skipVertices):
+                vert = vertices[i]
+
                 x = vert[0]
                 y = vert[1]
                 z = vert[2]
@@ -54,8 +59,6 @@ def main():
                     minZ = z
                 if (z > maxZ):
                     maxZ = z
-
-
 
             localDim = (minX, maxX, minY, maxY, minZ, maxZ)
             print(localDim)
