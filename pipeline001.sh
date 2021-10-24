@@ -11,11 +11,12 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 DIMS=$1
+RESAMPLE=$2
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "1. Preprocessing..."
 echo "1.1. Resample point clouds."
-./mesh_resample.sh "input" "0.8" ".obj" "_resample.ply"
+./mesh_resample.sh "input" "$RESAMPLE" ".obj" "_resample.ply"
 
 echo "1.2. Convert point clouds to voxel grids."
 ./mesh_to_binvox_batch.sh "input" "_resample.ply" "_pre.ply" "$DIMS" "True" # *_pre.ply -> *.binvox
