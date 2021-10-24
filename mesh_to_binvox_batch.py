@@ -27,8 +27,9 @@ def main():
 
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
-            print("Finding bounds for " + url)
             url = os.path.join(inputPath, fileName)
+            print("Finding bounds for " + url)
+
             urls.append(url)
             mesh = trimesh.load(url)
             
