@@ -12,7 +12,7 @@ cd $DIR
 
 INPUT_DIR=$1
 
-for INPUT in "$INPUT_DIR"/*_resample.ply
+for INPUT in "$INPUT_DIR"/*_post.ply
 do
   "Finding edges $INPUT"
   python3 Difference_Eigenvalues.py -- $INPUT 
