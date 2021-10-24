@@ -15,7 +15,7 @@ DIMS=$1
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "1. Preprocessing..."
 echo "1.1. Resample point clouds."
-./mesh_resample.sh "input" "0.1" ".obj" "_resample.ply"
+./mesh_resample.sh "input" "0.8" ".obj" "_resample.ply"
 
 echo "1.2. Convert point clouds to voxel grids."
 ./mesh_to_binvox_batch.sh "input" "_resample.ply" "_pre.ply" "$DIMS" "True" # *_pre.ply -> *.binvox
@@ -37,8 +37,5 @@ echo "3.2. Convert voxel grids to point clouds."
 echo "3.3. Find edges in point clouds."
 ./Difference_Eigenvalues.sh "output" # *_post.ply -> *_post_edges.ply
 
-echo "3.4. Resample point clouds."
-./mesh_resample.sh "output" "0.5" "_post_edges.ply" "_resample.ply"
-
-echo "3.5. Transfer vertex color."
-./color_transfer.sh "input" "output" "_resample_fake_filter_post_edges_resample.ply" # -> *final.obj
+echo "3.4. Transfer vertex color."
+./color_transfer.sh "input" "output" "_resample_fake_filter_post_edges.ply" # -> *final.obj
