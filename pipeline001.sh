@@ -23,7 +23,7 @@ echo "1.2. Convert point clouds to voxel grids."
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "2. Inference..."
-python test.py --epoch 50 --dataset "input" --img_width "$DIMS" --img_height "$DIMS" --img_depth "$DIMS"
+python test.py --epoch 100 --dataset "input" --img_width "$DIMS" --img_height "$DIMS" --img_depth "$DIMS"
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "3. Postprocessing..."

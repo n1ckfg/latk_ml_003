@@ -18,5 +18,6 @@ FILTER=$5
 
 for INPUT in "$INPUT_DIR"/*"$INPUT_EXT"
 do
+  echo "Converting binvox to mesh $INPUT"
   python mesh_to_binvox.py -- $INPUT $OUTPUT_EXT $DIMS $FILTER 
 done

@@ -15,5 +15,6 @@ DIMS=$2
 
 for INPUT in "$INPUT_DIR"/*.binvox
 do
+  echo "Converting binvox to h5 $INPUT"
   python binvox_to_h5.py -- $INPUT $DIMS
 done

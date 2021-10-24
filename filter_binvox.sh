@@ -17,5 +17,6 @@ DIMS=$2
 
 for INPUT in $INPUT_DIR/*.binvox
 do
+  echo "Filtering binvox $INPUT"
   python filter_binvox.py -- $INPUT $DIMS
 done

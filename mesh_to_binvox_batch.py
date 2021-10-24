@@ -27,6 +27,7 @@ def main():
 
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
+            print("Finding bounds for " + url)
             url = os.path.join(inputPath, fileName)
             urls.append(url)
             mesh = trimesh.load(url)
@@ -61,7 +62,7 @@ def main():
                     maxZ = z
 
             localDim = (minX, maxX, minY, maxY, minZ, maxZ)
-            print(localDim)
+            #print(localDim)
             localDims.append(localDim)
 
             if (minX < seqMinX):
@@ -86,11 +87,12 @@ def main():
         normMaxZ = mc.remap(localDim[5], seqMinZ, seqMaxZ, 0, 1)
 
         normVals = (normMinX, normMaxX, normMinY, normMaxY, normMinZ, normMaxZ)
-        print(normVals)
+        #print(normVals)
 
         localNorms.append(normVals)
 
     for i, url in enumerate(urls):
+        print("Converting to binvox: " + url)
         #mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter)
         mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[i], dimVals=localDims[i])
 

@@ -16,5 +16,6 @@ DEST_EXT=$3
 
 for INPUT in "$DIR/$SOURCE_DIR"/*_pre.ply
 do
+  echo "Restoring vertex color $INPUT"
   python color_transfer.py -- "$INPUT" "$DIR"/"$DEST_DIR" "$DEST_EXT"
 done

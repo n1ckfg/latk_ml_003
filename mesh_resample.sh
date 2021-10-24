@@ -17,5 +17,6 @@ OUTPUT_FORMAT=$4
 
 for INPUT in "$DIR/$INPUT_DIR"/*"$INPUT_FORMAT"
 do
+  echo "Resampling $INPUT"
   python mesh_resample.py -- $INPUT $PERCENTAGE $OUTPUT_FORMAT 
 done
