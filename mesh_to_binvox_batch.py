@@ -40,12 +40,7 @@ def main():
             minZ = 0
             maxZ = 0
             
-            # We can get good-enough bounds counting only half the vertices
-            skipVertices = 2;
-
-            for i in range(0, len(mesh.vertices), skipVertices):
-                vert = mesh.vertices[i]
-
+            for vert in mesh.vertices:
                 x = vert[0]
                 y = vert[1]
                 z = vert[2]
