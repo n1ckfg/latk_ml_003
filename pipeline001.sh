@@ -11,7 +11,8 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 DIMS=$1
-RESAMPLE=$2
+EPOCH=$2
+RESAMPLE=$3
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "1. Preprocessing..."
@@ -24,7 +25,7 @@ echo "1.2. Convert point clouds to voxel grids."
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "2. Inference..."
-python test.py --epoch 100 --dataset "input" --img_width "$DIMS" --img_height "$DIMS" --img_depth "$DIMS"
+python test.py --epoch "$EPOCH" --dataset "input" --img_width "$DIMS" --img_height "$DIMS" --img_depth "$DIMS"
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "3. Postprocessing..."
