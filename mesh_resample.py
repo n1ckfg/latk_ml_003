@@ -26,13 +26,13 @@ def main():
             outputUrl = changeExtension(inputUrl, outputFormat)
 
             ms = ml.MeshSet()
-            ms.load_new_mesh(inputUrl)
+            ms.load_new_mesh(os.path.abspath(inputUrl)) # pymeshlab needs absolute paths
 
             newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
             if (newSampleNum < 1):
                 newSampleNum = 1
 
             ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
-            ms.save_current_mesh(outputUrl)
+            ms.save_current_mesh(os.path.abspath(outputUrl)) # pymeshlab needs absolute paths
 
 main()
