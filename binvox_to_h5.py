@@ -51,15 +51,19 @@ def main():
     inputPath = argv[0]
     dims = int(argv[1])
 
-    print("Reading from : " + inputPath)
+    for fileName in os.listdir(inputPath):
+        if fileName.endswith(inputExt): 
+            inputUrl = os.path.join(inputPath, fileName)
+            
+            print("Reading from : " + inputUrl)
 
-    url = ""
-    outputPathArray = inputPath.split(".")
-    for i in range(0, len(outputPathArray)-1):
-        url += outputPathArray[i]
-    url += ".im"
+            outputUrl = ""
+            outputPathArray = inputUrl.split(".")
+            for i in range(0, len(outputPathArray)-1):
+                outputUrl += outputPathArray[i]
+            outputUrl += ".im"
 
-    print("Writing to: " + url)
-    convert_h5(inputPath, url, dims)
+            print("Writing to: " + outputUrl)
+            convert_h5(inputUrl, outputUrl, dims)
 
 main()

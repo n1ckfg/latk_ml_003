@@ -18,16 +18,19 @@ def main():
     samplePercentage = float(argv[1])
     outputFormat = argv[2]
 
-    outputPath = changeExtension(inputPath, outputFormat)
+    for fileName in os.listdir(inputPath):
+        inputUrl = os.path.join(inputPath, fileName)
 
-    ms = ml.MeshSet()
-    ms.load_new_mesh(inputPath)
+        outputUrl = changeExtension(inputUrl, outputFormat)
 
-    newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
-    if (newSampleNum < 1):
-        newSampleNum = 1
+        ms = ml.MeshSet()
+        ms.load_new_mesh(inputUrl)
 
-    ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
-    ms.save_current_mesh(outputPath)
+        newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
+        if (newSampleNum < 1):
+            newSampleNum = 1
+
+        ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
+        ms.save_current_mesh(outputUrl)
 
 main()
