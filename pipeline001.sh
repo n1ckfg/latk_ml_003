@@ -19,7 +19,7 @@ RESAMPLE=$5
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo "1. Preprocessing..."
 echo "1.1. Resample point clouds."
-python mesh_resample.py -- "$INPUT_DIR" "$RESAMPLE" "_resample.ply"
+python mesh_resample.py -- "$INPUT_DIR" "$RESAMPLE" ".obj" "_resample.ply"
 
 echo "1.2. Convert point clouds to voxel grids."
 python mesh_to_binvox.py -- "$INPUT_DIR" "_resample.ply" "_pre.ply" "$DIMS" "True"  # *_pre.ply -> *.binvox

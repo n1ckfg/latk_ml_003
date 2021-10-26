@@ -52,7 +52,7 @@ def main():
     dims = int(argv[1])
 
     for fileName in os.listdir(inputPath):
-        if fileName.endswith(inputExt): 
+        if fileName.endswith(".binvox"): 
             inputUrl = os.path.join(inputPath, fileName)
             
             print("Reading from : " + inputUrl)
