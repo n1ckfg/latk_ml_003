@@ -22,7 +22,8 @@ def main():
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputFormat): 
             inputUrl = os.path.join(inputPath, fileName)
-
+            print("Resampling " + inputUrl)
+            
             outputUrl = changeExtension(inputUrl, outputFormat)
 
             ms = ml.MeshSet()
