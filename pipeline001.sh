@@ -39,7 +39,7 @@ echo "3.2. Convert voxel grids to point clouds."
 ./binvox_to_mesh.sh "$OUTPUT_DIR" "$DIMS" # *_fake_filter.binvox -> _post.ply
 
 echo "3.3. Find edges in point clouds."
-./Difference_Eigenvalues.sh "$OUTPUT_DIR" # *_post.ply -> *_post_edges.ply
+python Difference_Eigenvalues.py -- "$OUTPUT_DIR" # *_post.ply -> *_post_edges.ply
 
 echo "3.4. Transfer vertex color."
 ./color_transfer.sh "$INPUT_DIR" "$OUTPUT_DIR" "_resample_fake_filter_post_edges.ply" # -> *final.obj
