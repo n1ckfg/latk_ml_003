@@ -23,6 +23,7 @@ def remap(value, min1, max1, min2, max2):
 
 def binvoxToMesh(url, ext="_post.ply", dims=128, axis='xyz'):
     voxel = None
+    print("Reading from: " + url)
     with open(url, 'rb') as f:
         voxel = binvox_rw.read_as_3d_array(f, True) # fix coords
     verts = []
@@ -33,6 +34,7 @@ def binvoxToMesh(url, ext="_post.ply", dims=128, axis='xyz'):
                     verts.append([dims-1-z, y, x])
     mesh = trimesh.Trimesh(vertices=verts, process=False)
     newMeshUrl = changeExtension(url, ext)
+    print("Writing to: " + newMeshUrl)
     mesh.export(newMeshUrl)
 
 def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, dimVals=None, axis='xyz'):
@@ -43,6 +45,7 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
+    print("Reading from: " + url)
     mesh = trimesh.load(url)
 
     if (normVals != None and dimVals !=None):
@@ -78,6 +81,7 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
             nd.binary_erosion(bv.data.copy(), output=bv.data)
 
     outputUrl = changeExtension(url, ".binvox")
+    print("Writing to: " + outputUrl)
 
     with open(outputUrl, 'wb') as f:
         bv.write(f)
