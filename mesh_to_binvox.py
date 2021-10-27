@@ -88,7 +88,6 @@ def main():
         localNorms.append(normVals)
 
     for i, url in enumerate(urls):
-        print("Converting to binvox: " + url)
         #mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter)
         mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[i], dimVals=localDims[i])
 

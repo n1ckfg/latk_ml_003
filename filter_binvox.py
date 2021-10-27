@@ -14,7 +14,7 @@ sobelReps = 0 #0
 gaussianSigma = 0 #0
 medianSize = 4 #3
 laplaceReps = 0 #0
-erodeReps = 2 #2
+erodeReps = 1 #2
 
 def read_binvox(path, fix_coords=True):
     voxel = None
@@ -37,7 +37,7 @@ def main():
         if fileName.endswith(".binvox"): 
             inputUrl = os.path.join(inputPath, fileName)
 
-            print("Reading from : " + inputUrl)
+            print("Reading from: " + inputUrl)
             bv = read_binvox(inputUrl)
 
             outputUrl = ""
