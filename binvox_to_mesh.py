@@ -1,6 +1,7 @@
 import sys
 import distutils.util
 import mesh_converter as mc
+import os
 
 def main():
     argv = sys.argv
@@ -9,6 +10,10 @@ def main():
     inputPath = argv[0]
     dims = int(argv[1])
 
-    mc.binvoxToMesh(url=inputPath, dims=dims)
+    for fileName in os.listdir(inputPath):
+        if fileName.endswith("filter.binvox"): 
+            url = os.path.join(inputPath, fileName)
+
+            mc.binvoxToMesh(url=url, dims=dims)
 
 main()
