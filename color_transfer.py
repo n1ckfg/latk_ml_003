@@ -12,8 +12,7 @@ def main():
         if fileName.endswith(argv[1]): 
             url = os.path.join(inputPath1, fileName)
 
-            newPathBase = os.path.basename(url)
-            newPathBase = newPathBase.split(argv[1])[0]
+            newPathBase = fileName.split(argv[1])[0]
             inputPath2 = os.path.join(argv[2], newPathBase + argv[3])
             outputPath = os.path.join(argv[2], newPathBase + "_final.obj")
 
