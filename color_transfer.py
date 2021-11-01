@@ -9,13 +9,13 @@ def main():
     inputPath1 = argv[0]
 
     for fileName in os.listdir(inputPath1):
-        if fileName.endswith("_pre.ply"): 
+        if fileName.endswith(argv[1]): 
             url = os.path.join(inputPath1, fileName)
 
             newPathBase = os.path.basename(url)
-            newPathBase = newPathBase.split("_")[0]
-            inputPath2 = os.path.join(argv[1], newPathBase + argv[2])
-            outputPath = os.path.join(argv[1], newPathBase + "_final.obj")
+            newPathBase = newPathBase.split(argv[1])[0]
+            inputPath2 = os.path.join(argv[2], newPathBase + argv[3])
+            outputPath = os.path.join(argv[2], newPathBase + "_final.obj")
 
             ms = ml.MeshSet()
             ms.load_new_mesh(os.path.abspath(url)) # pymeshlab needs absolute paths

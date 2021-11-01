@@ -42,4 +42,4 @@ echo "3.3. Find edges in point clouds."
 python Difference_Eigenvalues.py -- "$OUTPUT_DIR" # *_post.ply -> *_post_edges.ply
 
 echo "3.4. Transfer vertex color."
-python color_transfer.py -- "$INPUT_DIR" "$OUTPUT_DIR" "_resample_fake_filter_post_edges.ply" # -> *final.obj
+python color_transfer.py -- "$INPUT_DIR" "_resample_pre.ply" "$OUTPUT_DIR" "_resample_fake_filter_post_edges.ply" # -> *final.obj
