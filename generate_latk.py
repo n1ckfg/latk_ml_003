@@ -17,6 +17,4 @@ def main():
 
             points = []
 
-            for 
-
 main()
