@@ -11,3 +11,4 @@ h5py
 trimesh
 pyntcloud
 pymeshlab
+latk
