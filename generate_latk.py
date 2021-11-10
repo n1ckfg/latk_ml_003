@@ -14,6 +14,7 @@ def main():
     la.layers.append(layer)
 
     frameCounter = 0
+    maxStrokePoints = 100
 
     for fileName in os.listdir(inputPath1):
         if fileName.endswith(argv[1]): 
@@ -28,13 +29,22 @@ def main():
 
             points = []
             for vert in vertices:
-                point = latk.LatkPoint((vert[0], vert[1], vert[2]))
+                point = latk.LatkPoint((vert[0], vert[2], vert[1]))
                 points.append(point)
-            stroke = latk.LatkStroke(points)
-            frame = latk.LatkFrame()
-            frame.strokes.append(stroke)
+
+            strokes = []
+            for i in range(0, len(points) - maxStrokePoints, maxStrokePoints):
+            	newPoints = []
+            	for j in range(0, maxStrokePoints):
+            		newPoints.append(points[i+j])
+            	stroke = latk.LatkStroke(newPoints)
+            	strokes.append(stroke)
+            
+            frame = latk.LatkFrame(strokes)
 
             la.layers[0].frames.append(frame)
+
+    la.refine()
 
     print("Writing latk...")
     la.write("output.latk")
