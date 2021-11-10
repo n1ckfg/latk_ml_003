@@ -2,6 +2,7 @@ import sys
 import os
 import latk
 import pymeshlab as ml
+from random import uniform as rnd
 
 def main():
     argv = sys.argv
@@ -15,6 +16,7 @@ def main():
 
     frameCounter = 0
     maxStrokePoints = 100
+    maxStrokeDistance = 0.5
 
     for fileName in os.listdir(inputPath1):
         if fileName.endswith(argv[1]): 
@@ -32,19 +34,32 @@ def main():
                 point = latk.LatkPoint((vert[0], vert[2], vert[1]))
                 points.append(point)
 
+            numStrokes = int(len(points) / maxStrokePoints)
             strokes = []
-            for i in range(0, len(points) - maxStrokePoints, maxStrokePoints):
-            	newPoints = []
-            	for j in range(0, maxStrokePoints):
-            		newPoints.append(points[i+j])
-            	stroke = latk.LatkStroke(newPoints)
-            	strokes.append(stroke)
+            for i in range(0, 100):
+                randomStartIndex = int(rnd(0, len(points)))
+                randomStartPoint = points[randomStartIndex]
+                
+                for point in points:
+                    point.distance = la.getDistance(point.co, randomStartPoint.co)
+
+                points = sorted(points, key=lambda x: getattr(x, 'distance'))
+
+                newPoints = []
+                for j in range(1, maxStrokePoints):
+                    if (la.getDistance(points[i+j].co, points[i+j-1].co) < maxStrokeDistance):
+                        newPoints.append(points[i+j])
+                    else:
+                        break
+                if len(newPoints) > 1:
+                    stroke = latk.LatkStroke(newPoints)
+                    strokes.append(stroke)
             
             frame = latk.LatkFrame(strokes)
 
             la.layers[0].frames.append(frame)
 
-    la.refine()
+    #la.refine()
 
     print("Writing latk...")
     la.write("output.latk")
