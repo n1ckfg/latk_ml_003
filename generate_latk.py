@@ -36,6 +36,7 @@ def main():
 
             la.layers[0].frames.append(frame)
 
+    print("Writing latk...")
     la.write("output.latk")
 
 main()
