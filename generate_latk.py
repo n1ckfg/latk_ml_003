@@ -18,18 +18,21 @@ def main():
     for fileName in os.listdir(inputPath1):
         if fileName.endswith(argv[1]): 
             url = os.path.join(inputPath1, fileName)
+            print("Loading from " + url)
 
             ms = ml.MeshSet()
             ms.load_new_mesh(url)
             mesh = ms.current_mesh()
             vertices = mesh.vertex_matrix()
+            print("Found " + str(len(vertices)) + " vertices")
 
             points = []
             for vert in vertices:
                 point = latk.LatkPoint((vert[0], vert[1], vert[2]))
                 points.append(point)
             stroke = latk.LatkStroke(points)
-            frame = latk.LatkFrame(stroke)
+            frame = latk.LatkFrame()
+            frame.strokes.append(stroke)
 
             la.layers[0].frames.append(frame)
 
