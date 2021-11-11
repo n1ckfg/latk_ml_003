@@ -15,8 +15,7 @@ def main():
     la.layers.append(layer)
 
     frameCounter = 0
-    maxStrokePoints = 100
-    maxStrokeDistance = 0.5
+    maxStrokePoints = 50
 
     for fileName in os.listdir(inputPath1):
         if fileName.endswith(argv[1]): 
@@ -34,32 +33,46 @@ def main():
                 point = latk.LatkPoint((vert[0], vert[2], vert[1]))
                 points.append(point)
 
-            numStrokes = int(len(points) / maxStrokePoints)
+            numStrokes = int(len(points) / maxStrokePoints) * 2
             strokes = []
-            for i in range(0, 100):
-                randomStartIndex = int(rnd(0, len(points)))
-                randomStartPoint = points[randomStartIndex]
-                
+            
+            # MEDIAN
+            for i in range(0, numStrokes):
+                startIndex = int(rnd(0, len(points)))
+                startPoint = points[startIndex]
+
+                medianDistance = 0
+
                 for point in points:
-                    point.distance = la.getDistance(point.co, randomStartPoint.co)
+                    point.distance = la.getDistance(point.co, startPoint.co)
+                    if point.distance > medianDistance:
+                        medianDistance = point.distance
+
+                medianDistance /= 2
 
                 points = sorted(points, key=lambda x: getattr(x, 'distance'))
 
                 newPoints = []
                 for j in range(1, maxStrokePoints):
-                    if (la.getDistance(points[i+j].co, points[i+j-1].co) < maxStrokeDistance):
+                    finalDist = la.getDistance(points[i+j].co, points[i+j-1].co)
+
+                    if (finalDist < medianDistance):
                         newPoints.append(points[i+j])
                     else:
-                        break
+                        if len(newPoints) > 1:
+                            stroke = latk.LatkStroke(newPoints)
+                            strokes.append(stroke)
+                            newPoints = []
+
                 if len(newPoints) > 1:
                     stroke = latk.LatkStroke(newPoints)
                     strokes.append(stroke)
-            
+                
             frame = latk.LatkFrame(strokes)
 
             la.layers[0].frames.append(frame)
 
-    #la.refine()
+    la.refine()
 
     print("Writing latk...")
     la.write("output.latk")
