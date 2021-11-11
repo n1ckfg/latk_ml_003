@@ -16,6 +16,7 @@ def main():
 
     frameCounter = 0
     maxStrokePoints = 50
+    resample = int(argv[2])
 
     urls = []
     for fileName in os.listdir(inputPath1):
@@ -34,7 +35,8 @@ def main():
         print("Found " + str(len(vertices)) + " vertices")
 
         points = []
-        for vert in vertices:
+        for i in range(0, len(vertices), resample):
+            vert = vertices[i]
             point = latk.LatkPoint((vert[0], vert[2], vert[1]))
             points.append(point)
 

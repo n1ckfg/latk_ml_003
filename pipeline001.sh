@@ -44,5 +44,3 @@ python Difference_Eigenvalues.py -- "$OUTPUT_DIR" # *_post.ply -> *_post_edges.p
 echo "3.4. Transfer vertex color."
 python color_transfer.py -- "$INPUT_DIR" "_resample_pre.ply" "$OUTPUT_DIR" "_resample_fake_filter_post_edges.ply" # -> *final.obj
 
-echo "3.5. Generate the output Latk."
-python generate_latk.py -- "$OUTPUT_DIR" "_final.obj"
