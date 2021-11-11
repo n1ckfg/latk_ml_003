@@ -34,6 +34,9 @@ echo "3. Postprocessing..."
 echo "3.1. Convert voxel grids to point clouds."
 python binvox_to_mesh.py -- "$OUTPUT_DIR" "fake.binvox" "$DIMS" # *_fake_filter.binvox -> _post.ply
 
-echo "3.2. Transfer vertex color."
-python color_transfer.py -- "$INPUT_DIR" "_resample_pre.ply" "$OUTPUT_DIR" "_resample_fake_post.ply" # -> *final.obj
+echo "3.2. Find edges in point clouds."
+python Difference_Eigenvalues.py -- "$OUTPUT_DIR" # *_post.ply -> *_post_edges.ply
+
+echo "3.3. Transfer vertex color."
+python color_transfer.py -- "$INPUT_DIR" "_resample_pre.ply" "$OUTPUT_DIR" "_resample_fake_post_edges.ply" # -> *final.obj
 
