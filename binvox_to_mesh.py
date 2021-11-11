@@ -8,10 +8,11 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath = argv[0]
-    dims = int(argv[1])
+    ext = argv[1]
+    dims = int(argv[2])
 
     for fileName in os.listdir(inputPath):
-        if fileName.endswith("filter.binvox"): 
+        if fileName.endswith(ext): 
             url = os.path.join(inputPath, fileName)
 
             mc.binvoxToMesh(url=url, dims=dims)

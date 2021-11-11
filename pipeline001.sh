@@ -36,7 +36,7 @@ python filter_binvox.py -- "$OUTPUT_DIR" "$DIMS" # *_fake.binvox -> *_fake_filte
 rm output/*fake.binvox
 
 echo "3.2. Convert voxel grids to point clouds."
-python binvox_to_mesh.py -- "$OUTPUT_DIR" "$DIMS" # *_fake_filter.binvox -> _post.ply
+python binvox_to_mesh.py -- "$OUTPUT_DIR" "filter.binvox" "$DIMS" # *_fake_filter.binvox -> _post.ply
 
 echo "3.3. Find edges in point clouds."
 python Difference_Eigenvalues.py -- "$OUTPUT_DIR" # *_post.ply -> *_post_edges.ply
