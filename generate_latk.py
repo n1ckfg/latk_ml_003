@@ -3,6 +3,7 @@ import os
 import latk
 import pymeshlab as ml
 from random import uniform as rnd
+import distutils.util
 
 def main():
     argv = sys.argv
@@ -16,7 +17,8 @@ def main():
 
     frameCounter = 0
     maxStrokePoints = 50
-    resample = int(argv[2])
+    samplePercentage = float(argv[2])
+    doRefine = bool(distutils.util.strtobool(argv[3]))
 
     urls = []
     for fileName in os.listdir(inputPath1):
@@ -30,13 +32,19 @@ def main():
 
         ms = ml.MeshSet()
         ms.load_new_mesh(url)
+
+        newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
+        if (newSampleNum < 1):
+            newSampleNum = 1
+
+        ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
+
         mesh = ms.current_mesh()
         vertices = mesh.vertex_matrix()
         print("Found " + str(len(vertices)) + " vertices")
 
         points = []
-        for i in range(0, len(vertices), resample):
-            vert = vertices[i]
+        for vert in vertices:
             point = latk.LatkPoint((vert[0], vert[2], vert[1]))
             points.append(point)
 
@@ -79,7 +87,8 @@ def main():
 
         la.layers[0].frames.append(frame)
 
-    la.refine()
+    if (doRefine == True):
+        la.refine()
 
     print("Writing latk...")
     la.write("output.latk")
