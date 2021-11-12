@@ -25,7 +25,7 @@ def main():
         if fileName.endswith(argv[1]): 
             url = os.path.join(inputPath1, fileName)
             urls.append(url)
-            urls.sort()
+    urls.sort()
 
     for url in urls:
         print("Loading from " + url)

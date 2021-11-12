@@ -6,9 +6,11 @@ scipy
 pillow
 urllib3
 scikit-image
+scikit-fmm==0.0.9
 pyvista
 h5py
 trimesh
 pyntcloud
 pymeshlab
 latk
+
