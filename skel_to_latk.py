@@ -82,7 +82,8 @@ def main():
             frame = latk.LatkFrame(frame_number=i)
             la.layers[0].frames.append(frame)
 
-        skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=2, length_th=None, simple_path=False, verbose=True)
+        #skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=2, length_th=None, simple_path=False, verbose=True)
+        skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=3, length_th=None, simple_path=False, verbose=True)
 
         for i in range(0, len(colorUrls)):
             print("\nLoading meshes " + str(i+1) + " / " + str(len(colorUrls)))
@@ -90,19 +91,23 @@ def main():
             colorMs.load_new_mesh(colorUrls[i])
             colorMesh = colorMs.current_mesh()
             colorVertices = colorMesh.vertex_matrix()
-            colorVertices = scaleVertices(colorVertices, dims)
+            #colorVertices = scaleVertices(colorVertices, dims)
 
             coreMs = ml.MeshSet()
             coreMs.load_new_mesh(coreUrls[i])
             coreMesh = coreMs.current_mesh()
             coreVertices = coreMesh.vertex_matrix()
-            coreVertices = scaleVertices(coreVertices, dims)
+            #coreVertices = scaleVertices(coreVertices, dims)
 
             edgeMs = ml.MeshSet()
-            edgeMs.load_new_mesh(edgeUrls[i])
+            edgeMs.load_new_mesh(coreUrls[i])
+            edgeMs.surface_reconstruction_ball_pivoting()
+            edgeMs.select_crease_edges()
+            edgeMs.build_a_polyline_from_selected_edges()
             edgeMesh = edgeMs.current_mesh()
             edgeVertices = edgeMesh.vertex_matrix()
-            edgeVertices = scaleVertices(edgeVertices, dims)
+            edgeEdges = edgeMesh.edge_matrix()
+            #edgeVertices = scaleVertices(edgeVertices, dims)
 
             print("\nCore skeleton " + str(i+1) + " / " + str(len(colorUrls)))
             coreSk = skel.skeleton(meshToVoxels(coreVertices, dims))
@@ -110,72 +115,54 @@ def main():
             for limb in coreSk:
                 points = []
                 for point in limb:
-                    point = latk.LatkPoint((point[0], -point[2], point[1]))
+                    point = latk.LatkPoint((point[0], point[2], point[1]))
                     points.append(point)
                 stroke = latk.LatkStroke(points)
                 la.layers[0].frames[i].strokes.append(stroke)
 
-            print("\nEdge skeleton " + str(i+1) + " / " + str(len(colorUrls)))
-            edgeSk = skel.skeleton(meshToVoxels(edgeVertices, dims))
-
-            for limb in edgeSk:
-                points = []
-                for point in limb:
-                    point = latk.LatkPoint((point[0], -point[2], point[1]))
-                    points.append(point)
-                stroke = latk.LatkStroke(points)
-                la.layers[0].frames[i].strokes.append(stroke)
-
-            '''
-            print("\nEdge detail " + str(i+1) + " / " + str(len(colorUrls)))
-            
-            maxStrokePoints = 60
-            minStrokePoints = 3
-
-            points = []
-            for vert in coreVertices:
-                point = latk.LatkPoint((vert[0], vert[2], vert[1]))
-                points.append(point)
-
-            numStrokes = int(len(points) / maxStrokePoints)
+            print("\nEdge detail " + str(i+1) + " / " + str(len(colorUrls)))          
             strokes = []
-            
-            # MEDIAN
-            for j in range(0, numStrokes):
-                startIndex = int(rnd(0, len(points)))
-                startPoint = points[startIndex]
 
-                medianDistance = 0
+            for edge in edgeEdges:
+                points = []
+                for edgePoint in edge:
+                    vert = edgeVertices[edgePoint]
+                    points.append(latk.LatkPoint((vert[0], vert[2], vert[1])))
+                stroke = latk.LatkStroke(points)
+                strokes.append(stroke)
 
-                for point in points:
-                    point.distance = la.getDistance(point.co, startPoint.co)
-                    if point.distance > medianDistance:
-                        medianDistance = point.distance
+            newStrokes = []
+            newStrokeDistance = (dims / 50.0)
+            minStrokePoints = int(dims / 5)
 
-                medianDistance /= 2
+            for j, stroke in enumerate(strokes):
+                isNewStroke = True
 
-                points = sorted(points, key=lambda x: getattr(x, 'distance'))
+                if (j > 0):
+                    for point in stroke.points:
+                        for newPoint in newStrokes[len(newStrokes)-1].points:
+                            if la.getDistance(point.co, newPoint.co) < newStrokeDistance: 
+                                isNewStroke = False
+                                break
+                        if (isNewStroke == False):
+                            break
 
-                newPoints = []
-                for k in range(1, maxStrokePoints):
-                    finalDist = la.getDistance(points[j+k].co, points[j+k-1].co)
+                if (isNewStroke == True):
+                    newStrokes.append(stroke)
+                else:
+                    for point in stroke.points:
+                        newStrokes[len(newStrokes)-1].points.append(point)
 
-                    if (finalDist < medianDistance):
-                        newPoints.append(points[j+k])
-                    else:
-                        if len(newPoints) > minStrokePoints:
-                            stroke = latk.LatkStroke(newPoints)
-                            strokes.append(stroke)
-                            newPoints = []
+            for stroke in newStrokes:
+                if (len(stroke.points) > minStrokePoints):
+                    startPoint = points[0]
+                    for point in stroke.points:
+                        point.distance = la.getDistance(point.co, startPoint.co)
 
-                if len(newPoints) > minStrokePoints:
-                    stroke = latk.LatkStroke(newPoints)
-                    strokes.append(stroke)            
+                stroke.points = sorted(stroke.points, key=lambda x: getattr(x, 'distance'))
+                la.layers[0].frames[i].strokes.append(stroke)
 
-            la.layers[0].frames[i].strokes.append(stroke)
-        '''
         print("\nWriting latk...")
-        #la.refine()
         la.write("output.latk")
         print("\n...Finished writing latk.")
     else:
