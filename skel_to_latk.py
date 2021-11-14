@@ -57,7 +57,7 @@ def main():
     skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=3, length_th=None, simple_path=False, verbose=True)
 
     for i in range(0, len(urls)):
-        print("\nLoading meshes " + str(i+1) + " / " + str(len(colorUrls)))
+        print("\nLoading meshes " + str(i+1) + " / " + str(len(urls)))
         ms = ml.MeshSet()
         ms.load_new_mesh(urls[i])
         coreMesh = ms.current_mesh()
