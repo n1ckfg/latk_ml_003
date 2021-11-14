@@ -76,7 +76,7 @@ def main():
         edgeEdges = edgeMesh.edge_matrix()
 
         ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
-        edgeColors = edgeMesh.color_matrix()
+        edgeColors = edgeMesh.vertex_color_matrix()
 
         print("\nCore skeleton " + str(i+1) + " / " + str(len(colorUrls)))
         coreSk = skel.skeleton(meshToVoxels(coreVertices, dims))
