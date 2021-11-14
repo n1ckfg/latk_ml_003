@@ -71,7 +71,8 @@ def main():
         ms.load_new_mesh(urls[i])
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
-        ms.build_a_polyline_from_selected_edges()
+        # https://pymeshlab.readthedocs.io/en/0.2/filter_list.html#build_a_polyline_from_selected_edges
+        ms.build_a_polyline_from_selected_edges(-45, 45)
 
         edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
@@ -101,6 +102,7 @@ def main():
             for edgePoint in edge:
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
+                print(col)
                 points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = col))
             stroke = latk.LatkStroke(points)
             strokes.append(stroke)
