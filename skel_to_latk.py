@@ -71,6 +71,7 @@ def main():
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
         ms.build_a_polyline_from_selected_edges()
+        ms.surface_reconstruction_ball_pivoting()
 
         ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
         edgeMesh = ms.current_mesh()
