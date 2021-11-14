@@ -70,10 +70,9 @@ def main():
         ms.load_new_mesh(urls[i])
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
-        ms.build_a_polyline_from_selected_edges()
-        ms.surface_reconstruction_ball_pivoting()
+        ms.build_a_polyline_from_selected_edges() # this command creates a new mesh
 
-        ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
+        ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=2)
         edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
         #edgeVertices = scaleVertices(edgeVertices, dims)
