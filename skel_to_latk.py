@@ -78,7 +78,7 @@ def main():
         #edgeVertices = scaleVertices(edgeVertices, dims)
         edgeEdges = edgeMesh.edge_matrix()
 
-        ms.apply_filter("vertex_attribute_transfer", sourcemesh=1, targetmesh=0)
+        ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
         edgeColors = edgeMesh.vertex_color_matrix()
 
         if (doSkeleton == True):
