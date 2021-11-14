@@ -63,7 +63,7 @@ def main():
         coreMesh = ms.current_mesh()
         coreVertices = coreMesh.vertex_matrix()
         coreVertices = scaleVertices(coreVertices, dims)
-        coreColors = coreMesh.color_matrix()
+        coreColors = coreMesh.vertex_color_matrix()
 
         ms.load_new_mesh(urls[i])
         ms.surface_reconstruction_ball_pivoting()
