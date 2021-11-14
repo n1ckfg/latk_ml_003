@@ -102,7 +102,7 @@ def main():
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
                 print(col)
-                points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = (col[0], col[1], col[2])))
+                points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = (col[0], col[1], col[2], col[3])))
             stroke = latk.LatkStroke(points)
             strokes.append(stroke)
 
