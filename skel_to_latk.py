@@ -78,7 +78,7 @@ def main():
         ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
         edgeColors = edgeMesh.vertex_color_matrix()
 
-        print("\nCore skeleton " + str(i+1) + " / " + str(len(colorUrls)))
+        print("\nCore skeleton " + str(i+1) + " / " + str(len(urls)))
         coreSk = skel.skeleton(meshToVoxels(coreVertices, dims))
 
         for limb in coreSk:
@@ -89,7 +89,7 @@ def main():
             stroke = latk.LatkStroke(points)
             la.layers[0].frames[i].strokes.append(stroke)
 
-        print("\nEdge detail " + str(i+1) + " / " + str(len(colorUrls)))          
+        print("\nEdge detail " + str(i+1) + " / " + str(len(urls)))          
         strokes = []
 
         for edge in edgeEdges:
