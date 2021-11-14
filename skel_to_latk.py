@@ -72,7 +72,8 @@ def main():
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
         # https://pymeshlab.readthedocs.io/en/0.2/filter_list.html#build_a_polyline_from_selected_edges
-        ms.build_a_polyline_from_selected_edges(-45, 45)
+        edgeAngles = (-45, 45)
+        ms.build_a_polyline_from_selected_edges(edgeAngles)
 
         edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
