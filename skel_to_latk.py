@@ -71,16 +71,14 @@ def main():
         ms.load_new_mesh(urls[i])
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
-        # https://pymeshlab.readthedocs.io/en/0.2/filter_list.html#build_a_polyline_from_selected_edges
-        edgeAngles = (-45, 45)
-        ms.build_a_polyline_from_selected_edges(edgeAngles)
+        ms.build_a_polyline_from_selected_edges()
 
         edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
         #edgeVertices = scaleVertices(edgeVertices, dims)
         edgeEdges = edgeMesh.edge_matrix()
 
-        ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
+        ms.apply_filter("vertex_attribute_transfer", sourcemesh=1, targetmesh=0)
         edgeColors = edgeMesh.vertex_color_matrix()
 
         if (doSkeleton == True):
