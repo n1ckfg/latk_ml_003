@@ -68,7 +68,7 @@ def main():
         #coreVertices = scaleVertices(coreVertices, dims)
         coreColors = coreMesh.vertex_color_matrix()
 
-        ms.load_new_mesh(urls[i])
+        ms.add_mesh(coreMesh)
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
         ms.build_a_polyline_from_selected_edges()
@@ -79,7 +79,7 @@ def main():
         edgeEdges = edgeMesh.edge_matrix()
 
         ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
-        edgeColors = coreMesh.vertex_color_matrix()
+        edgeColors = edgeMesh.vertex_color_matrix()
 
         if (doSkeleton == True):
             print("\nCore skeleton " + str(i+1) + " / " + str(len(urls)))
@@ -102,7 +102,7 @@ def main():
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
                 print(col)
-                points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = col))
+                points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = (col[0], col[1], col[2])))
             stroke = latk.LatkStroke(points)
             strokes.append(stroke)
 
