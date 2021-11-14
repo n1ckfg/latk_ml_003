@@ -35,7 +35,7 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath = argv[0] # "output"
-    inputExt = argv[1] # "final.obj"
+    inputExt = argv[1] # "_final.ply"
     dims = int(argv[2]) # 128
 
     urls = []
@@ -53,8 +53,7 @@ def main():
         frame = latk.LatkFrame(frame_number=i)
         la.layers[0].frames.append(frame)
 
-    #skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=2, length_th=None, simple_path=False, verbose=True)
-    skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=3, length_th=None, simple_path=False, verbose=True)
+    skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=2, length_th=None, simple_path=False, verbose=True)
 
     for i in range(0, len(urls)):
         print("\nLoading meshes " + str(i+1) + " / " + str(len(urls)))
@@ -62,7 +61,7 @@ def main():
         ms.load_new_mesh(urls[i])
         coreMesh = ms.current_mesh()
         coreVertices = coreMesh.vertex_matrix()
-        coreVertices = scaleVertices(coreVertices, dims)
+        #coreVertices = scaleVertices(coreVertices, dims)
         coreColors = coreMesh.vertex_color_matrix()
 
         ms.load_new_mesh(urls[i])
@@ -72,7 +71,7 @@ def main():
 
         edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
-        edgeVertices = scaleVertices(edgeVertices, dims)
+        #edgeVertices = scaleVertices(edgeVertices, dims)
         edgeEdges = edgeMesh.edge_matrix()
 
         ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)

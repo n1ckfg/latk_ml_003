@@ -7,6 +7,7 @@ def main():
     argv = argv[argv.index("--") + 1:] # get all args after "--"
 
     inputPath1 = argv[0]
+    outputExt = argv[4]
 
     for fileName in os.listdir(inputPath1):
         if fileName.endswith(argv[1]): 
@@ -14,7 +15,7 @@ def main():
 
             newPathBase = fileName.split(argv[1])[0]
             inputPath2 = os.path.join(argv[2], newPathBase + argv[3])
-            outputPath = os.path.join(argv[2], newPathBase + "_final.obj")
+            outputPath = os.path.join(argv[2], newPathBase + outputExt)
 
             ms = ml.MeshSet()
             ms.load_new_mesh(os.path.abspath(url)) # pymeshlab needs absolute paths
