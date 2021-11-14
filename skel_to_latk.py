@@ -6,6 +6,7 @@ import latk
 import binvox_rw
 from random import uniform as rnd
 import pymeshlab as ml
+import distutils.util
 
 def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
