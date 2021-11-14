@@ -62,15 +62,15 @@ def main():
     for i in range(0, len(urls)):
         print("\nLoading meshes " + str(i+1) + " / " + str(len(urls)))
         ms = ml.MeshSet()
-        ms.load_new_mesh(urls[i])
+        ms.load_new_mesh(urls[i]) # first mesh -> index 0
         coreMesh = ms.current_mesh()
         coreVertices = coreMesh.vertex_matrix()
         #coreVertices = scaleVertices(coreVertices, dims)
 
-        ms.load_new_mesh(urls[i])
+        ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
-        ms.build_a_polyline_from_selected_edges() # this command creates a new mesh
+        ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
 
         ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=2)
         edgeMesh = ms.current_mesh()
@@ -99,7 +99,9 @@ def main():
             for edgePoint in edge:
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
-                print(col)
+                # TODO find out why colors are too light
+                col = (col[0] * col[0], col[1] * col[1], col[2] * col[2], col[3])
+                #print(col)
                 points.append(latk.LatkPoint((-vert[0], vert[2], vert[1]), vertex_color=(col[0], col[1], col[2], col[3])))
             stroke = latk.LatkStroke(points)
             strokes.append(stroke)
@@ -132,8 +134,8 @@ def main():
                 for point in stroke.points:
                     point.distance = la.getDistance(point.co, startPoint.co)
 
-            stroke.points = sorted(stroke.points, key=lambda x: getattr(x, 'distance'))
-            la.layers[0].frames[i].strokes.append(stroke)
+                stroke.points = sorted(stroke.points, key=lambda x: getattr(x, 'distance'))
+                la.layers[0].frames[i].strokes.append(stroke)
 
     print("\nWriting latk...")
     la.write("output.latk")
