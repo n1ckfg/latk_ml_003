@@ -65,7 +65,7 @@ def main():
         ms.load_new_mesh(urls[i]) # first mesh -> index 0
         coreMesh = ms.current_mesh()
         coreVertices = coreMesh.vertex_matrix()
-        #coreVertices = scaleVertices(coreVertices, dims)
+        coreVertices = scaleVertices(coreVertices, dims)
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
         ms.surface_reconstruction_ball_pivoting()
@@ -75,7 +75,7 @@ def main():
         ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=2)
         edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
-        #edgeVertices = scaleVertices(edgeVertices, dims)
+        edgeVertices = scaleVertices(edgeVertices, dims)
         edgeEdges = edgeMesh.edge_matrix()
         edgeColors = edgeMesh.vertex_color_matrix()
 
