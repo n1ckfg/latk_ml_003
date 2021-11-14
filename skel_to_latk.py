@@ -37,6 +37,7 @@ def main():
     inputPath = argv[0] # "output"
     inputExt = argv[1] # "_final.ply"
     dims = int(argv[2]) # 128
+    doSkeleton = bool(distutils.util.strtobool(argv[3]))
 
     urls = []
 
@@ -53,7 +54,9 @@ def main():
         frame = latk.LatkFrame(frame_number=i)
         la.layers[0].frames.append(frame)
 
-    skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=2, length_th=None, simple_path=False, verbose=True)
+    skel = None
+    if (doSkeleton == True):
+        skel = skeletonize(speed_power=1.2, Euler_step_size=0.5, depth_th=2, length_th=None, simple_path=False, verbose=True)
 
     for i in range(0, len(urls)):
         print("\nLoading meshes " + str(i+1) + " / " + str(len(urls)))
@@ -74,19 +77,20 @@ def main():
         #edgeVertices = scaleVertices(edgeVertices, dims)
         edgeEdges = edgeMesh.edge_matrix()
 
-        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
+        ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
         edgeColors = edgeMesh.vertex_color_matrix()
 
-        print("\nCore skeleton " + str(i+1) + " / " + str(len(urls)))
-        coreSk = skel.skeleton(meshToVoxels(coreVertices, dims))
+        if (doSkeleton == True):
+            print("\nCore skeleton " + str(i+1) + " / " + str(len(urls)))
+            coreSk = skel.skeleton(meshToVoxels(coreVertices, dims))
 
-        for limb in coreSk:
-            points = []
-            for point in limb:
-                point = latk.LatkPoint((point[0], point[2], point[1]))
-                points.append(point)
-            stroke = latk.LatkStroke(points)
-            la.layers[0].frames[i].strokes.append(stroke)
+            for limb in coreSk:
+                points = []
+                for point in limb:
+                    point = latk.LatkPoint((point[0], point[2], point[1]))
+                    points.append(point)
+                stroke = latk.LatkStroke(points)
+                la.layers[0].frames[i].strokes.append(stroke)
 
         print("\nEdge detail " + str(i+1) + " / " + str(len(urls)))          
         strokes = []
