@@ -79,7 +79,7 @@ def main():
         edgeEdges = edgeMesh.edge_matrix()
 
         ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
-        edgeColors = edgeMesh.vertex_color_matrix()
+        edgeColors = coreMesh.vertex_color_matrix()
 
         if (doSkeleton == True):
             print("\nCore skeleton " + str(i+1) + " / " + str(len(urls)))
