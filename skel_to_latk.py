@@ -44,7 +44,7 @@ def main():
 
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
-            url = os.path.join(inputPath, fileName)
+            url = os.path.abspath(os.path.join(inputPath, fileName))
             urls.append(url)
     urls.sort()
 
@@ -86,7 +86,7 @@ def main():
             for limb in coreSk:
                 points = []
                 for point in limb:
-                    point = latk.LatkPoint((point[0], point[2], point[1]))
+                    point = latk.LatkPoint((-point[0], point[2], point[1]))
                     points.append(point)
                 stroke = latk.LatkStroke(points)
                 la.layers[0].frames[i].strokes.append(stroke)
@@ -100,7 +100,7 @@ def main():
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
                 print(col)
-                points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = (col[0], col[1], col[2], col[3])))
+                points.append(latk.LatkPoint((-vert[0], vert[2], vert[1]), vertex_color=(col[0], col[1], col[2], col[3])))
             stroke = latk.LatkStroke(points)
             strokes.append(stroke)
 
