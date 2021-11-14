@@ -108,7 +108,7 @@ def main():
 
         newStrokes = []
         newStrokeDistance = (dims / 50.0)
-        minStrokePoints = int(dims / 5)
+        minStrokePoints = int(dims / 10.0)
 
         for j, stroke in enumerate(strokes):
             isNewStroke = True
