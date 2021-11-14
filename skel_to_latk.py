@@ -49,7 +49,7 @@ def main():
     la = latk.Latk()
     layer = latk.LatkLayer()
     la.layers.append(layer)
-    for i in range(0, len(colorUrls)):
+    for i in range(0, len(urls)):
         frame = latk.LatkFrame(frame_number=i)
         la.layers[0].frames.append(frame)
 
@@ -58,22 +58,24 @@ def main():
 
     for i in range(0, len(urls)):
         print("\nLoading meshes " + str(i+1) + " / " + str(len(colorUrls)))
-        coreMs = ml.MeshSet()
-        coreMs.load_new_mesh(coreUrls[i])
-        coreMesh = coreMs.current_mesh()
+        ms = ml.MeshSet()
+        ms.load_new_mesh(urls[i])
+        coreMesh = ms.current_mesh()
         coreVertices = coreMesh.vertex_matrix()
         coreVertices = scaleVertices(coreVertices, dims)
         coreColors = coreMesh.color_matrix()
 
-        edgeMs = ml.MeshSet()
-        edgeMs.load_new_mesh(coreUrls[i])
-        edgeMs.surface_reconstruction_ball_pivoting()
-        edgeMs.select_crease_edges()
-        edgeMs.build_a_polyline_from_selected_edges()
-        edgeMesh = edgeMs.current_mesh()
+        ms.load_new_mesh(urls[i])
+        ms.surface_reconstruction_ball_pivoting()
+        ms.select_crease_edges()
+        ms.build_a_polyline_from_selected_edges()
+
+        edgeMesh = ms.current_mesh()
         edgeVertices = edgeMesh.vertex_matrix()
         edgeVertices = scaleVertices(edgeVertices, dims)
         edgeEdges = edgeMesh.edge_matrix()
+
+        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
         edgeColors = edgeMesh.color_matrix()
 
         print("\nCore skeleton " + str(i+1) + " / " + str(len(colorUrls)))
@@ -94,7 +96,8 @@ def main():
             points = []
             for edgePoint in edge:
                 vert = edgeVertices[edgePoint]
-                points.append(latk.LatkPoint((vert[0], vert[2], vert[1])))
+                col = edgeColors[edgePoints]
+                points.append(latk.LatkPoint((vert[0], vert[2], vert[1]), vertex_color = col))
             stroke = latk.LatkStroke(points)
             strokes.append(stroke)
 
