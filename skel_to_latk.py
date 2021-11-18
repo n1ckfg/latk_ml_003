@@ -68,6 +68,12 @@ def main():
         coreVertices = scaleVertices(coreVertices, dims)
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
+        samplePercentage = 0.1
+        newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
+        if (newSampleNum < 1):
+            newSampleNum = 1
+
+        ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
         ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
@@ -79,8 +85,99 @@ def main():
         edgeEdges = edgeMesh.edge_matrix()
         edgeColors = edgeMesh.vertex_color_matrix()
 
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~
+        print("\nSorting edges " + str(i+1) + " / " + str(len(urls)))
+        # https://blenderscripting.blogspot.com/2011/07/sorting-edge-keys-part-ii.html
+
+        # existing edges    
+        ex_edges = []
+        existing_edges = []
+        for i in edgeEdges:
+            edge_keys = [i[0], i[1]]
+            ex_edges.append(edge_keys)
+            item = [i.index, edge_keys] 
+            existing_edges.append(item)
+            print(item)
+    
+        # proposed edges
+        proposed_edges = []    
+        num_edges = len(existing_edges)
+        for i in range(num_edges):
+            item2 = [i,[i,i+1]]
+            proposed_edges.append(item2)
+            print(item2)
+
+        # find first end point, discontinue after finding a lose end.
+        current_sequence = []
+        iteration = 0
+        while (iteration <= num_edges):
+            count_presence = 0
+            for i in edgeEdges:
+                try:
+                    if iteration in i[1]:
+                        count_presence += 1
+                except:
+                    pass
+            
+            print("iteration: ", iteration, count_presence)
+            if count_presence == 1:
+                break
+            iteration += 1
+            
+        init_num = iteration
+        print("end point", init_num)
+
+        # find connected sequence
+        seq_list = []
+        glist = []
+
+        def generate_ladder(starter, edge_key_list):
+            
+            def find_vert_connected(vert, mlist):
+                if len(mlist) == 1:
+                   for g in mlist:
+                        for k in g:
+                            if k is not vert:
+                                return(k, -1)
+            
+                for i in mlist:
+                    if vert in i:
+                        idx = mlist.index(i)
+                        for m in i:
+                            if m is not vert:
+                                return(m, idx)
+
+            stairs = []
+            while(True):
+                stairs.append(starter)
+                starter, idx = find_vert_connected(starter,  edge_key_list)
+                if idx == -1:
+                    stairs.append(starter)
+                    break
+                edge_key_list.pop(idx)
+            return(stairs)
+
+        seq_list = generate_ladder(init_num, ex_edges)
+
+        # make verts and edges
+        newVerts = []
+        newEdges = []
+
+        for i in range(len(edgeVertices)):
+            print(i)
+            old_idx = seq_list[i]
+            myVec = edgeVertices[old_idx]
+            newVerts.append((myVec[0], myVec[i], myVec[2]))
+            
+        for i in newVerts: print(i)
+
+        for i in proposed_edges:
+            newEdges.append(tuple(i[1]))
+        print(newEdges)  
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~
+
         if (doSkeleton == True):
-            print("\nCore skeleton " + str(i+1) + " / " + str(len(urls)))
+            print("\nGenerating skeleton " + str(i+1) + " / " + str(len(urls)))
             coreSk = skel.skeleton(meshToVoxels(coreVertices, dims))
 
             for limb in coreSk:
@@ -91,7 +188,7 @@ def main():
                 stroke = latk.LatkStroke(points)
                 la.layers[0].frames[i].strokes.append(stroke)
 
-        print("\nEdge detail " + str(i+1) + " / " + str(len(urls)))          
+        print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))          
         strokes = []
 
         for edge in edgeEdges:
