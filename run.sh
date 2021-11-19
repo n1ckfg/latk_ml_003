@@ -9,6 +9,7 @@ RESAMPLE=0.1
 INPUT_DIR="output"
 DIMS=3
 
-python skel_to_latk.py -- "$INPUT_DIR" "_final.ply" "$DIMS" "False"
+python paths_to_latk.py -- "$INPUT_DIR" "_final.ply" "$DIMS"
+
 
 
