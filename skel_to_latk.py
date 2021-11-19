@@ -31,7 +31,6 @@ def meshToVoxels(vertices=None, _dims=128): #, axis='xyz'):
 
     return data
 
-
 def find_vert_connected(vert, mlist):
     if len(mlist) == 1:
        for g in mlist:
@@ -200,21 +199,15 @@ def main():
 
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))          
 
-        maxPointDistance = 0.05
+        maxPointDistance = 0.15
         maxNumPoints = 200.0
-        minNumPoints = 2.0
+        minNumPoints = 4.0
 
         points = []
         for j, edge in enumerate(Edges):
             try: 
                 edgePoint = edge[1]
 
-                '''
-                if (edgePoint < 0):
-                    edgePoint = 0
-                elif (edgePoint > len(edgeVertices) - 1):
-                    edgePoint = len(edgeVertices) - 1
-                '''
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
                 # TODO find out why colors are too light
