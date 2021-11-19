@@ -55,6 +55,7 @@ def main():
         ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
         newTempUrl = os.path.abspath(os.path.join(inputPath, "output" + str(i) + ".ply"));
         ms.save_current_mesh(newTempUrl)
+        vertices = ms.current_mesh().vertex_matrix()
         vertexColors = ms.current_mesh().vertex_color_matrix()
 
         print("\nSorting edges " + str(i+1) + " / " + str(len(urls)))
@@ -71,24 +72,24 @@ def main():
 
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))     
         
-        numStrokes = 500
-        minStrokePoints = 2
+        numStrokes = 10
         maxStrokePoints = 10
 
         for j in range(0, numStrokes):
             try:
-                start = int(rnd(0, len(mesh.vertices) - maxStrokePoints))
-                end = start + int(rnd(minStrokePoints, maxStrokePoints))
+                start = int(rnd(maxStrokePoints, len(mesh.vertices) - maxStrokePoints))
+                end = start + int(rnd(-maxStrokePoints, maxStrokePoints))
                 # run the shortest path query using length for edge weight
                 path = nx.shortest_path(g, source=start, target=end, weight='length')
 
                 points = []
                 for index in path:
                     vert = mesh.vertices[index]
-                    col = vertexColors[index]
+                    col = mesh.visual.vertex_colors[index]
 
                     # TODO find out why colors are too light
                     col = (col[0] * col[0], col[1] * col[1], col[2] * col[2], col[3])
+
                     #print(col)
                     newVert = (-vert[0], vert[2], vert[1])
                     lp = latk.LatkPoint(newVert, vertex_color=(col[0], col[1], col[2], col[3]))
