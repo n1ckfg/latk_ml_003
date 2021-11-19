@@ -31,6 +31,32 @@ def meshToVoxels(vertices=None, _dims=128): #, axis='xyz'):
 
     return data
 
+
+def find_vert_connected(vert, mlist):
+    if len(mlist) == 1:
+       for g in mlist:
+            for k in g:
+                if k is not vert:
+                    return(k, -1)
+
+    for g in mlist:
+        if vert in g:
+            idx = mlist.index(g)
+            for m in g:
+                if m is not vert:
+                    return(m, idx)
+                        
+def generate_ladder(starter, edge_key_list):
+    stairs = []
+    while(True):
+        stairs.append(starter)
+        starter, idx = find_vert_connected(starter,  edge_key_list)
+        if idx == -1:
+            stairs.append(starter)
+            break
+        edge_key_list.pop(idx)
+    return(stairs)
+
 def main():
     argv = sys.argv
     argv = argv[argv.index("--") + 1:] # get all args after "--"
@@ -68,12 +94,13 @@ def main():
         coreVertices = scaleVertices(coreVertices, dims)
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
-        samplePercentage = 0.1
+        
+        samplePercentage = 0.6
         newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
         if (newSampleNum < 1):
             newSampleNum = 1
-
         ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
+
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
         ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
@@ -89,35 +116,37 @@ def main():
         print("\nSorting edges " + str(i+1) + " / " + str(len(urls)))
         # https://blenderscripting.blogspot.com/2011/07/sorting-edge-keys-part-ii.html
 
+        idx_vert_list = []
+        for j, vert in enumerate(edgeVertices):
+            idx_vert_list.append([j, vert])
+
         # existing edges    
         ex_edges = []
         existing_edges = []
-        for i in edgeEdges:
-            edge_keys = [i[0], i[1]]
+        for j, edge in enumerate(edgeEdges):
+            edge_keys = [edge[0], edge[1]]
             ex_edges.append(edge_keys)
-            item = [i.index, edge_keys] 
+            item = [j, edge_keys] 
             existing_edges.append(item)
             print(item)
-    
+
         # proposed edges
+        print("    becomes")
         proposed_edges = []    
         num_edges = len(existing_edges)
-        for i in range(num_edges):
-            item2 = [i,[i,i+1]]
+        for j in range(num_edges):
+            item2 = [j, [j, j+1]]
             proposed_edges.append(item2)
             print(item2)
-
+           
         # find first end point, discontinue after finding a lose end.
         current_sequence = []
         iteration = 0
-        while (iteration <= num_edges):
+        while(iteration <= num_edges):
             count_presence = 0
-            for i in edgeEdges:
-                try:
-                    if iteration in i[1]:
-                        count_presence += 1
-                except:
-                    pass
+            for j in existing_edges:
+                if iteration in j[1]:
+                    count_presence += 1
             
             print("iteration: ", iteration, count_presence)
             if count_presence == 1:
@@ -126,54 +155,33 @@ def main():
             
         init_num = iteration
         print("end point", init_num)
-
+        print("ex_edges: " + str(len(ex_edges)))
+        
         # find connected sequence
         seq_list = []
         glist = []
 
-        def generate_ladder(starter, edge_key_list):
-            
-            def find_vert_connected(vert, mlist):
-                if len(mlist) == 1:
-                   for g in mlist:
-                        for k in g:
-                            if k is not vert:
-                                return(k, -1)
-            
-                for i in mlist:
-                    if vert in i:
-                        idx = mlist.index(i)
-                        for m in i:
-                            if m is not vert:
-                                return(m, idx)
-
-            stairs = []
-            while(True):
-                stairs.append(starter)
-                starter, idx = find_vert_connected(starter,  edge_key_list)
-                if idx == -1:
-                    stairs.append(starter)
-                    break
-                edge_key_list.pop(idx)
-            return(stairs)
-
-        seq_list = generate_ladder(init_num, ex_edges)
+        seq_list = generate_ladder(init_num, [ex_edges])
 
         # make verts and edges
-        newVerts = []
-        newEdges = []
+        Verts = []
+        Edges = []
 
-        for i in range(len(edgeVertices)):
-            print(i)
-            old_idx = seq_list[i]
-            myVec = edgeVertices[old_idx]
-            newVerts.append((myVec[0], myVec[i], myVec[2]))
-            
-        for i in newVerts: print(i)
+        for j in range(len(idx_vert_list)):
+            try:
+                print(j)
+                old_idx = seq_list[j]
+                myVec = idx_vert_list[old_idx][1]
+                Verts.append((myVec[0], myVec[1], myVec[2]))
+            except:
+                pass
+                    
+        for j in Verts: print(j)
 
-        for i in proposed_edges:
-            newEdges.append(tuple(i[1]))
-        print(newEdges)  
+        for j in proposed_edges:
+            Edges.append(tuple(j[1]))
+        
+        print(Edges)  
         # ~ ~ ~ ~ ~ ~ ~ ~ ~
 
         if (doSkeleton == True):
@@ -189,50 +197,37 @@ def main():
                 la.layers[0].frames[i].strokes.append(stroke)
 
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))          
-        strokes = []
 
-        for edge in edgeEdges:
-            points = []
-            for edgePoint in edge:
+        maxPointDistance = 0.3
+        maxNumPoints = 40.0
+        minNumPoints = 3.0
+
+        points = []
+        for edge in Edges:
+            for j, edgePoint in enumerate(edge):
                 vert = edgeVertices[edgePoint]
                 col = edgeColors[edgePoint]
                 # TODO find out why colors are too light
                 col = (col[0] * col[0], col[1] * col[1], col[2] * col[2], col[3])
                 #print(col)
-                points.append(latk.LatkPoint((-vert[0], vert[2], vert[1]), vertex_color=(col[0], col[1], col[2], col[3])))
-            stroke = latk.LatkStroke(points)
-            strokes.append(stroke)
+                newVert = (-vert[0], vert[2], vert[1])
+                
+                dist = 0
+                if (j != 0 and len(points) > 0):
+                    dist = la.getDistance(newVert, points[len(points)-1].co)
+                
+                if (dist > maxPointDistance):
+                    if (len(points) >= minNumPoints):
+                        stroke = latk.LatkStroke(points)
+                        la.layers[0].frames[i].strokes.append(stroke)
+                    points = []
 
-        newStrokes = []
-        newStrokeDistance = (dims / 50.0)
-        minStrokePoints = int(dims / 35.0)
+                points.append(latk.LatkPoint(newVert, vertex_color=(col[0], col[1], col[2], col[3])))                    
 
-        for j, stroke in enumerate(strokes):
-            isNewStroke = True
-
-            if (j > 0):
-                for point in stroke.points:
-                    for newPoint in newStrokes[len(newStrokes)-1].points:
-                        if la.getDistance(point.co, newPoint.co) < newStrokeDistance: 
-                            isNewStroke = False
-                            break
-                    if (isNewStroke == False):
-                        break
-
-            if (isNewStroke == True):
-                newStrokes.append(stroke)
-            else:
-                for point in stroke.points:
-                    newStrokes[len(newStrokes)-1].points.append(point)
-
-        for stroke in newStrokes:
-            if (len(stroke.points) > minStrokePoints):
-                startPoint = points[0]
-                for point in stroke.points:
-                    point.distance = la.getDistance(point.co, startPoint.co)
-
-                stroke.points = sorted(stroke.points, key=lambda x: getattr(x, 'distance'))
-                la.layers[0].frames[i].strokes.append(stroke)
+                if (len(points) >= maxNumPoints):
+                    stroke = latk.LatkStroke(points)
+                    la.layers[0].frames[i].strokes.append(stroke)
+                    points = []
 
     print("\nWriting latk...")
     la.write("output.latk")
