@@ -72,8 +72,8 @@ def main():
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))     
         
         numStrokes = 500
-        minStrokePoints = 5
-        maxStrokePoints = 50
+        minStrokePoints = 2
+        maxStrokePoints = 10
 
         for j in range(0, numStrokes):
             try:
