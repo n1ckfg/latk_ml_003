@@ -95,11 +95,13 @@ def main():
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
         
-        samplePercentage = 0.6
+        '''
+        samplePercentage = 1.0
         newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
         if (newSampleNum < 1):
             newSampleNum = 1
         ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
+        '''
 
         ms.surface_reconstruction_ball_pivoting()
         ms.select_crease_edges()
@@ -198,36 +200,41 @@ def main():
 
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))          
 
-        maxPointDistance = 0.3
-        maxNumPoints = 40.0
-        minNumPoints = 3.0
+        maxPointDistance = 0.1
+        maxNumPoints = 100.0
+        minNumPoints = 10.0
 
         points = []
-        for edge in Edges:
-            for j, edgePoint in enumerate(edge):
-                vert = edgeVertices[edgePoint]
-                col = edgeColors[edgePoint]
-                # TODO find out why colors are too light
-                col = (col[0] * col[0], col[1] * col[1], col[2] * col[2], col[3])
-                #print(col)
-                newVert = (-vert[0], vert[2], vert[1])
-                
-                dist = 0
-                if (j != 0 and len(points) > 0):
-                    dist = la.getDistance(newVert, points[len(points)-1].co)
-                
-                if (dist > maxPointDistance):
-                    if (len(points) >= minNumPoints):
-                        stroke = latk.LatkStroke(points)
-                        la.layers[0].frames[i].strokes.append(stroke)
-                    points = []
+        for j, edge in enumerate(Edges):
+            edgePoint = edge[1]
 
-                points.append(latk.LatkPoint(newVert, vertex_color=(col[0], col[1], col[2], col[3])))                    
-
-                if (len(points) >= maxNumPoints):
+            if (edgePoint < 0):
+                edgePoint = 0
+            elif (edgePoint > len(edgeVertices) - 1):
+                edgePoint = len(edgeVertices) - 1
+            vert = edgeVertices[edgePoint]
+            col = edgeColors[edgePoint]
+            # TODO find out why colors are too light
+            col = (col[0] * col[0], col[1] * col[1], col[2] * col[2], col[3])
+            #print(col)
+            newVert = (-vert[0], vert[2], vert[1])
+            
+            dist = 0
+            if (j != 0 and len(points) > 0):
+                dist = la.getDistance(newVert, points[len(points)-1].co)
+            
+            if (dist > maxPointDistance):
+                if (len(points) >= minNumPoints):
                     stroke = latk.LatkStroke(points)
                     la.layers[0].frames[i].strokes.append(stroke)
-                    points = []
+                points = []
+
+            points.append(latk.LatkPoint(newVert, vertex_color=(col[0], col[1], col[2], col[3])))                    
+
+            if (len(points) >= maxNumPoints):
+                stroke = latk.LatkStroke(points)
+                la.layers[0].frames[i].strokes.append(stroke)
+                points = []
 
     print("\nWriting latk...")
     la.write("output.latk")
