@@ -61,20 +61,26 @@ def main():
         print("\nSorting edges " + str(i+1) + " / " + str(len(urls)))
         # https://trimsh.org/examples/shortest.html
         mesh = trimesh.load(newTempUrl)
+        
         # edges without duplication
         edges = mesh.edges_unique
+        
         # the actual length of each unique edge
         length = mesh.edges_unique_length
+        
+        lengthNoise = 0.5
+
         # create the graph with edge attributes for length
         g = nx.Graph()
         for edge, L in zip(edges, length):
-            g.add_edge(*edge, length=L)
+            #g.add_edge(*edge, length=L)
+            g.add_edge(*edge, length=L + rnd(-lengthNoise, lengthNoise))
 
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))     
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokes = 2000
+        numStrokes = 3000
         minStrokePoints = 5
 
         for j in range(0, numStrokes):
