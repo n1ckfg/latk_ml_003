@@ -68,19 +68,16 @@ def main():
         # the actual length of each unique edge
         length = mesh.edges_unique_length
         
-        lengthNoise = 0.5
-
         # create the graph with edge attributes for length
         g = nx.Graph()
         for edge, L in zip(edges, length):
-            #g.add_edge(*edge, length=L)
-            g.add_edge(*edge, length=L + rnd(-lengthNoise, lengthNoise))
+            g.add_edge(*edge, length=L)
 
         print("\nConnecting edge points " + str(i+1) + " / " + str(len(urls)))     
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokes = 3000
+        numStrokes = 1000
         minStrokePoints = 5
 
         for j in range(0, numStrokes):
