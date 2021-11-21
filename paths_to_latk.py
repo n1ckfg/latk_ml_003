@@ -86,17 +86,19 @@ def main():
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokeTries = 1000
-        minStrokePoints = 3
-        maxStrokePoints = 1000
+        numStrokeTries = 500
+        minStrokePoints = 2
+        maxStrokePoints = 9999
+
+        checkSimilarity = True
         similarityScores = []
-        maxSimilarity = 0.85
+        maxSimilarity = 0.8
 
         for j in range(0, numStrokeTries):
             points = []
             similarity = []
-            start = int(rnd(0, len(mesh.vertices)-1))
-            end = int(rnd(0, len(mesh.vertices)-1))
+            start = int(rnd(0, len(mesh.vertices) - 1))
+            end = int(rnd(0, len(mesh.vertices) - 1))
 
             try:
                 # run the shortest path query using length for edge weight
@@ -125,11 +127,12 @@ def main():
 
                 similarityString = ' '.join(map(str, similarity))
 
-                for score in similarityScores:
-                    similarityTest = similar2(score, similarityString)
-                    if (similarityTest > maxSimilarity):
-                        readyToAdd = False
-                        break
+                if (checkSimilarity == True):
+	                for score in similarityScores:
+	                    similarityTest = similar2(score, similarityString)
+	                    if (similarityTest > maxSimilarity):
+	                        readyToAdd = False
+	                        break
 
                 if (readyToAdd):
                     similarityScores.append(similarityString)
