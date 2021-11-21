@@ -27,7 +27,7 @@ def read_binvox(path, dims=128, fix_coords=True):
     with open(path, 'rb') as f:
         voxel = binvox_rw.read_as_3d_array(f, fix_coords)
     
-    voxel_data = voxel.data.astype(np.float)
+    voxel_data = voxel.data.astype(float) #voxel.data.astype(np.float)
     if shape is not None and voxel_data.shape != shape:
         voxel_data = resize(voxel.data.astype(np.float64), shape)
 
