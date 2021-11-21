@@ -88,24 +88,24 @@ def main():
 
         numStrokeTries = 1000
         minStrokePoints = 3
-        maxStrokePoints = 30
+        maxStrokePoints = 1000
         similarityScores = []
-        maxSimilarity = 0.95
+        maxSimilarity = 0.85
 
         for j in range(0, numStrokeTries):
             points = []
-            similarity = ""
-            start = int(rnd(0, len(mesh.vertices)-2))
-            end = int(rnd(start+1, len(mesh.vertices)-1))
+            similarity = []
+            start = int(rnd(0, len(mesh.vertices)-1))
+            end = int(rnd(0, len(mesh.vertices)-1))
 
             try:
                 # run the shortest path query using length for edge weight
                 path = nx.shortest_path(g, source=start, target=end, weight='length')
 
                 for index in path:
-                    similarity += str(index)
                     vert = vertices[index]
-                    
+                    similarity.append(str(index))
+
                     col = mesh.visual.vertex_colors[index]
                     col = (float(col[0])/255.0, float(col[1])/255.0, float(col[2])/255.0, float(col[3])/255.0)
                     # TODO find out why colors are too light
@@ -114,6 +114,7 @@ def main():
                     newVert = (-vert[0], vert[2], vert[1])
                     lp = latk.LatkPoint(newVert, vertex_color=col)
                     points.append(lp)
+                    
                     if (len(points) >= maxStrokePoints):
                         break
             except:
@@ -121,17 +122,24 @@ def main():
 
             if (len(points) >= minStrokePoints):  
                 readyToAdd = True
+
+                similarityString = ' '.join(map(str, similarity))
+
                 for score in similarityScores:
-                    similarityTest = similar2(score, similarity)
+                    similarityTest = similar2(score, similarityString)
                     if (similarityTest > maxSimilarity):
                         readyToAdd = False
                         break
+
                 if (readyToAdd):
-                    similarityScores.append(similarity)
+                    similarityScores.append(similarityString)
                     stroke = latk.LatkStroke(points)
                     la.layers[0].frames[i].strokes.append(stroke)
+                    
                     print ("Created stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
+        
         print("--- Created frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", with " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
+    
     print("\nWriting latk...")
     la.write("output.latk")
     print("\n...Finished writing latk.")
