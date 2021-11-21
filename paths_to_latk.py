@@ -7,6 +7,8 @@ import pymeshlab as ml
 import distutils.util
 import trimesh
 import networkx as nx
+from difflib import SequenceMatcher
+import jellyfish
 
 def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
@@ -18,6 +20,13 @@ def scale_numpy_array(arr, min_v, max_v):
 
 def scaleVertices(vertices, _dims=128):
     return scale_numpy_array(vertices, 0, _dims - 1)
+
+# https://stackoverflow.com/questions/17388213/find-the-similarity-metric-between-two-strings
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
+def similar2(a, b):
+    return jellyfish.jaro_distance(a, b)
 
 def main():
     argv = sys.argv
@@ -77,19 +86,24 @@ def main():
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokes = 1000
-        minStrokePoints = 5
+        numStrokeTries = 1000
+        minStrokePoints = 3
+        maxStrokePoints = 30
+        similarityScores = []
+        maxSimilarity = 0.95
 
-        for j in range(0, numStrokes):
+        for j in range(0, numStrokeTries):
             points = []
-            start = int(rnd(0, len(mesh.vertices)-1))
-            end = start + int(rnd(-2, 2))
-            
+            similarity = ""
+            start = int(rnd(0, len(mesh.vertices)-2))
+            end = int(rnd(start+1, len(mesh.vertices)-1))
+
             try:
                 # run the shortest path query using length for edge weight
                 path = nx.shortest_path(g, source=start, target=end, weight='length')
 
                 for index in path:
+                    similarity += str(index)
                     vert = vertices[index]
                     
                     col = mesh.visual.vertex_colors[index]
@@ -100,14 +114,24 @@ def main():
                     newVert = (-vert[0], vert[2], vert[1])
                     lp = latk.LatkPoint(newVert, vertex_color=col)
                     points.append(lp)
+                    if (len(points) >= maxStrokePoints):
+                        break
             except:
                 pass
 
             if (len(points) >= minStrokePoints):  
-                stroke = latk.LatkStroke(points)
-                la.layers[0].frames[i].strokes.append(stroke)
-                print ("Stroke " + str(j+1) + " / " + str(numStrokes) + " with " + str(len(points)) + " points")
-
+                readyToAdd = True
+                for score in similarityScores:
+                    similarityTest = similar2(score, similarity)
+                    if (similarityTest > maxSimilarity):
+                        readyToAdd = False
+                        break
+                if (readyToAdd):
+                    similarityScores.append(similarity)
+                    stroke = latk.LatkStroke(points)
+                    la.layers[0].frames[i].strokes.append(stroke)
+                    print ("Created stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
+        print("--- Created frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", with " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
     print("\nWriting latk...")
     la.write("output.latk")
     print("\n...Finished writing latk.")
