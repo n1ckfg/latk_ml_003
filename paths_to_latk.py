@@ -121,7 +121,7 @@ def main():
                     if (len(points) >= maxStrokePoints):
                         break
             except:
-                print("  Stroke" + str(j+1) + " skipped: No path from start to end.")
+                print("  Skipped frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + ": No path from start to end.")
                 pass
 
             if (len(points) >= minStrokePoints):  
@@ -134,7 +134,7 @@ def main():
                         similarityTest = similar2(score, similarityString)
                         if (similarityTest > maxSimilarity):
                             readyToAdd = False
-                            print("  Stroke " + str(j+1) + " skipped: Failed similarity test " + str(similarityTest))
+                            print("  Skipped frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + ": Failed similarity test (" + str(similarityTest) + ").")
                             break
 
                 if (readyToAdd):
@@ -142,11 +142,11 @@ def main():
                     stroke = latk.LatkStroke(points)
                     la.layers[0].frames[i].strokes.append(stroke)
                     
-                    print("Created stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
+                    print("Created frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
             else:
-                print("  Stroke " + str(j+1) + " skipped: Not enough points.")
+                print("  Skipped frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + ": Not enough points.")
 
-        print("--- Created frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", with " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
+        print("--- Finished frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ": " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
     
     print("\nWriting latk...")
     la.write("output.latk")
