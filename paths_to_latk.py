@@ -59,11 +59,11 @@ def main():
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
         ms.surface_reconstruction_ball_pivoting()
-        ms.select_crease_edges()
-        ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
-        ms.surface_reconstruction_ball_pivoting()
+        #ms.select_crease_edges()
+        #ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
+        #ms.surface_reconstruction_ball_pivoting()
 
-        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=2)
+        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
         newTempUrl = os.path.abspath(os.path.join(inputPath, "output" + str(i) + ".ply"));
         ms.save_current_mesh(newTempUrl)
         
@@ -75,7 +75,7 @@ def main():
         edges = mesh.edges_unique
         
         # the actual length of each unique edge
-        length = mesh.edges_unique_length
+        length = mesh.edges_unique_length + rnd(-0.5, 0.5)
         
         # create the graph with edge attributes for length
         g = nx.Graph()
@@ -86,19 +86,20 @@ def main():
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokeTries = 500
-        minStrokePoints = 2
+        numStrokeTries = 1000
+        minStrokePoints = 8
         maxStrokePoints = 9999
 
-        checkSimilarity = True
+        checkSimilarity = False
         similarityScores = []
         maxSimilarity = 0.8
 
         for j in range(0, numStrokeTries):
             points = []
             similarity = []
-            start = int(rnd(0, len(mesh.vertices) - 1))
-            end = int(rnd(0, len(mesh.vertices) - 1))
+            start = int(rnd(0, len(mesh.vertices) - 2))
+            end = start + 1
+            #end = int(rnd(0, len(mesh.vertices) - 1))
 
             try:
                 # run the shortest path query using length for edge weight
@@ -120,6 +121,7 @@ def main():
                     if (len(points) >= maxStrokePoints):
                         break
             except:
+                print("  Stroke" + str(j+1) + " skipped: No path from start to end.")
                 pass
 
             if (len(points) >= minStrokePoints):  
@@ -128,19 +130,22 @@ def main():
                 similarityString = ' '.join(map(str, similarity))
 
                 if (checkSimilarity == True):
-	                for score in similarityScores:
-	                    similarityTest = similar2(score, similarityString)
-	                    if (similarityTest > maxSimilarity):
-	                        readyToAdd = False
-	                        break
+                    for score in similarityScores:
+                        similarityTest = similar2(score, similarityString)
+                        if (similarityTest > maxSimilarity):
+                            readyToAdd = False
+                            print("  Stroke " + str(j+1) + " skipped: Failed similarity test " + str(similarityTest))
+                            break
 
                 if (readyToAdd):
                     similarityScores.append(similarityString)
                     stroke = latk.LatkStroke(points)
                     la.layers[0].frames[i].strokes.append(stroke)
                     
-                    print ("Created stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
-        
+                    print("Created stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
+            else:
+                print("  Stroke " + str(j+1) + " skipped: Not enough points.")
+
         print("--- Created frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", with " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
     
     print("\nWriting latk...")
