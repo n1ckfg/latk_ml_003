@@ -5,4 +5,5 @@ input/*
 output/*
 *.latk
 *.pth
-
+*.obj
+*.ply
