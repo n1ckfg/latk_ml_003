@@ -11,17 +11,18 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 INPUT_DIR=$1
-OUTPUT_DIR=$2
-DIMS=$3
-EPOCH=$4
-RESAMPLE=$5
+FIRST_INPUT_EXT=$2
+OUTPUT_DIR=$3
+DIMS=$4
+EPOCH=$5
+RESAMPLE=$6
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo
 echo "1. Preprocessing..."
 echo
 echo "1.1. Resample point clouds."
-python mesh_resample.py -- "$INPUT_DIR" "$RESAMPLE" ".obj" "_resample.ply"
+python mesh_resample.py -- "$INPUT_DIR" "$RESAMPLE" "$FIRST_INPUT_EXT" "_resample.ply"
 
 echo
 echo "1.2. Convert point clouds to voxel grids."
