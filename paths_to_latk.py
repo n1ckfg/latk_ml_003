@@ -59,11 +59,11 @@ def main():
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
         ms.surface_reconstruction_ball_pivoting()
-        #ms.select_crease_edges()
-        #ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
-        #ms.surface_reconstruction_ball_pivoting()
+        ms.select_crease_edges()
+        ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
+        ms.surface_reconstruction_ball_pivoting()
 
-        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
+        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=2)
         newTempUrl = os.path.abspath(os.path.join(inputPath, "output" + str(i) + ".ply"));
         ms.save_current_mesh(newTempUrl)
         
@@ -97,8 +97,8 @@ def main():
         for j in range(0, numStrokeTries):
             points = []
             similarity = []
-            start = int(rnd(0, len(mesh.vertices) - 2))
-            end = start + 1
+            start = int(rnd(0, len(mesh.vertices) - 1))
+            end = int(rnd(0, len(mesh.vertices) - 1))
             #end = int(rnd(0, len(mesh.vertices) - 1))
 
             try:
