@@ -75,7 +75,7 @@ def main():
         edges = mesh.edges_unique
         
         # the actual length of each unique edge
-        length = mesh.edges_unique_length + rnd(-0.5, 0.5)
+        length = mesh.edges_unique_length
         
         # create the graph with edge attributes for length
         g = nx.Graph()
@@ -86,15 +86,16 @@ def main():
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokeTries = 1000
-        minStrokePoints = 8
+        numStrokes = 100
+        minStrokePoints = 10
         maxStrokePoints = 9999
+        strokeCounter = 0
 
-        checkSimilarity = False
+        checkSimilarity = True
         similarityScores = []
         maxSimilarity = 0.8
 
-        for j in range(0, numStrokeTries):
+        while strokeCounter < numStrokes:
             points = []
             similarity = []
             start = int(rnd(0, len(mesh.vertices) - 1))
@@ -121,7 +122,7 @@ def main():
                     if (len(points) >= maxStrokePoints):
                         break
             except:
-                print("  Skipped frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + ": No path from start to end.")
+                print("  Frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", skipped stroke: No path from start to end.")
                 pass
 
             if (len(points) >= minStrokePoints):  
@@ -134,19 +135,20 @@ def main():
                         similarityTest = similar2(score, similarityString)
                         if (similarityTest > maxSimilarity):
                             readyToAdd = False
-                            print("  Skipped frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + ": Failed similarity test (" + str(similarityTest) + ").")
+                            print("  Frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", skipped stroke: Failed similarity test (" + str(similarityTest) + ").")
                             break
 
                 if (readyToAdd):
                     similarityScores.append(similarityString)
                     stroke = latk.LatkStroke(points)
                     la.layers[0].frames[i].strokes.append(stroke)
+                    strokeCounter += 1
                     
-                    print("Created frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + " / " + str(numStrokeTries) + " tries, with " + str(len(points)) + " points")
+                    print("Frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", created stroke " + str(strokeCounter) + " / " + str(numStrokes) + ", with " + str(len(points)) + " points")
             else:
-                print("  Skipped frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", stroke " + str(j+1) + ": Not enough points.")
+                print("  Frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ", skipped stroke: Not enough points.")
 
-        print("--- Finished frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + ": " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
+        print("--- Frame " + str(i+1) + " / " + str(len(la.layers[0].frames)) + " FINISHED: " + str(len(la.layers[0].frames[i].strokes)) + " strokes ---")
     
     print("\nWriting latk...")
     la.write("output.latk")
