@@ -35,7 +35,11 @@ def main():
     inputPath = argv[0] # "output"
     inputExt = argv[1] # "_final.ply"
     dims = int(argv[2]) # 128
-
+    numStrokes = int(argv[3]) #100
+    minStrokePoints = int(argv[4]) #10
+    maxStrokePoints = int(argv[5]) #9999
+    checkSimilarity = False
+    maxSimilarity = 0.8
     urls = []
 
     for fileName in os.listdir(inputPath):
@@ -86,14 +90,8 @@ def main():
         
         vertices = scaleVertices(mesh.vertices, dims)
 
-        numStrokes = 100
-        minStrokePoints = 10
-        maxStrokePoints = 9999
         strokeCounter = 0
-
-        checkSimilarity = True
         similarityScores = []
-        maxSimilarity = 0.8
 
         while strokeCounter < numStrokes:
             points = []

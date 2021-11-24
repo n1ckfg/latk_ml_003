@@ -9,8 +9,11 @@ RESAMPLE=0.1
 
 INPUT_DIR="output"
 DIMS=3
+NUM_STROKES=300
+MIN_STROKE_SIZE=5
+MAX_STROKE_SIZE=9999
 
-python paths_to_latk.py -- "$INPUT_DIR" "_final.ply" "$DIMS"
+python paths_to_latk.py -- "$INPUT_DIR" "_final.ply" "$DIMS" "$NUM_STROKES" "$MIN_STROKE_SIZE" "$MAX_STROKE_SIZE"
 
 
 
