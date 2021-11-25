@@ -12,8 +12,9 @@ DIMS=3
 NUM_STROKES=300
 MIN_STROKE_SIZE=5
 MAX_STROKE_SIZE=9999
+MAX_SIMILARITY=0.8
 
-python paths_to_latk.py -- "$INPUT_DIR" "_final.ply" "$DIMS" "$NUM_STROKES" "$MIN_STROKE_SIZE" "$MAX_STROKE_SIZE"
+python paths_to_latk.py -- "$INPUT_DIR" "_final.ply" "$DIMS" "$NUM_STROKES" "$MIN_STROKE_SIZE" "$MAX_STROKE_SIZE" "$MAX_SIMILARITY"
 
 
 

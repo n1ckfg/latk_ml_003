@@ -38,8 +38,10 @@ def main():
     numStrokes = int(argv[3]) #100
     minStrokePoints = int(argv[4]) #10
     maxStrokePoints = int(argv[5]) #9999
-    checkSimilarity = False
-    maxSimilarity = 0.8
+    maxSimilarity = float(argv[6]) #0.8
+
+    checkSimilarity = True
+    
     urls = []
 
     for fileName in os.listdir(inputPath):
@@ -63,11 +65,11 @@ def main():
 
         ms.add_mesh(coreMesh) # duplicates the current mesh -> index 1
         ms.surface_reconstruction_ball_pivoting()
-        ms.select_crease_edges()
-        ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
-        ms.surface_reconstruction_ball_pivoting()
+        #ms.select_crease_edges()
+        #ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
+        #ms.surface_reconstruction_ball_pivoting()
 
-        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=2)
+        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
         newTempUrl = os.path.abspath(os.path.join(inputPath, "output" + str(i) + ".ply"));
         ms.save_current_mesh(newTempUrl)
         
