@@ -69,7 +69,7 @@ def main():
         frame = latk.LatkFrame(frame_number=i)
         la.layers[0].frames.append(frame)
 
-    for i in range(0, 1): #len(urls)):        
+    for i in range(0, len(urls)):        
         print("\nLoading meshes " + str(i+1) + " / " + str(len(urls)))
         ms = ml.MeshSet()
         ms.load_new_mesh(urls[i]) # first mesh -> index 0
