@@ -11,13 +11,21 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 dos2unix *.sh
+chmod +x *.sh
 
 INPUT_DIR="input"
-FIRST_INPUT_EXT=".obj"
+FIRST_INPUT_EXT=".ply"
 OUTPUT_DIR="output"
 DIMS=256
 EPOCH=100
-RESAMPLE=0.1
+RESAMPLE=0.8
+
+rm $INPUT_DIR/*.binvox
+rm $INPUT_DIR/*.im
+rm $INPUT_DIR/*resample.ply
+rm $INPUT_DIR/*resample.obj
+rm $INPUT_DIR/*pre.ply
+rm $INPUT_DIR/*pre.obj
 
 ./pipeline_004.sh "$INPUT_DIR" "$FIRST_INPUT_EXT" "$OUTPUT_DIR" "$DIMS" "$EPOCH" "$RESAMPLE"
 
