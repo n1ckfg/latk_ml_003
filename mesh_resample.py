@@ -33,7 +33,8 @@ def main():
             if (newSampleNum < 1):
                 newSampleNum = 1
 
-            ms.apply_filter("poisson_disk_sampling", samplenum=newSampleNum, subsample=True)
+            ms.surface_reconstruction_ball_pivoting()
+            ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=False)
             ms.save_current_mesh(os.path.abspath(outputUrl)) # pymeshlab needs absolute paths
 
 main()
