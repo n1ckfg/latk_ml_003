@@ -48,7 +48,7 @@ def main():
     
     urls = []
     maxSimilarity = 0.99       
-    doFindEdges = True
+    doFindEdges = False
     extraDebug = False
 
     for fileName in os.listdir(inputPath):
@@ -144,7 +144,6 @@ def main():
                     if (extraDebug == True):
                         print("  " + sayText + "skipped stroke: No path from start to end.")
                         failedStrokeTries += 1
-                        end = int(rnd(0, len(cluster.indices) - 1))
 
                 if (len(points) >= minStrokePoints):  
                     readyToAdd = True
@@ -158,7 +157,6 @@ def main():
                             readyToAdd = False
                             print("  " + sayText + "skipped stroke: Failed similarity test (" + str(similarityTest) + ").")
                             failedStrokeTries += 1
-                            end = int(rnd(0, len(cluster.indices) - 1))
                             break
 
                     if (readyToAdd):
@@ -173,7 +171,6 @@ def main():
                     if (extraDebug == True):
                         print("  " + sayText + "skipped stroke: Not enough points.")
                         failedStrokeTries += 1
-                        end = int(rnd(0, len(cluster.indices) - 1))
                     pass
 
                 if (failedStrokeTries > numStrokes):
