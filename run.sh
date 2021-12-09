@@ -14,7 +14,7 @@ dos2unix *.sh
 chmod +x *.sh
 
 INPUT_DIR="input"
-FIRST_INPUT_EXT=".ply"
+FIRST_INPUT_EXT=".obj"
 OUTPUT_DIR="output"
 DIMS=256
 EPOCH=100
