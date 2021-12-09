@@ -40,6 +40,7 @@ def main():
                 if (mesh.edge_number() == 0 and mesh.face_number() == 0):
                     ms.surface_reconstruction_ball_pivoting()
                 ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=False)
+                ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
             else:
                 ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=True)
                 
