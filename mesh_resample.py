@@ -28,13 +28,21 @@ def main():
 
             ms = ml.MeshSet()
             ms.load_new_mesh(os.path.abspath(inputUrl)) # pymeshlab needs absolute paths
+            mesh = ms.current_mesh()
 
-            newSampleNum = int(ms.current_mesh().vertex_number() * samplePercentage)
+            newSampleNum = int(mesh.vertex_number() * samplePercentage)
             if (newSampleNum < 1):
                 newSampleNum = 1
 
-            ms.surface_reconstruction_ball_pivoting()
-            ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=False)
+            # The resample method can subtract points from an unstructured point cloud, 
+            # but needs connection information to add them.
+            if (samplePercentage > 1.0):
+                if (mesh.edge_number() == 0 and mesh.face_number() == 0):
+                    ms.surface_reconstruction_ball_pivoting()
+                ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=False)
+            else:
+                ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=True)
+                
             ms.save_current_mesh(os.path.abspath(outputUrl)) # pymeshlab needs absolute paths
 
 main()
