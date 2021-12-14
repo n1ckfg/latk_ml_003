@@ -1,0 +1,93 @@
+#### I/O
+mesh_in=./input.ply
+svg_out=./out.svg
+#### SVG
+svg_bg=true
+show_axis=false
+show_chains=false
+show_singularities=false
+#### CAMERA
+camera_target=72.8627, 213.367, -120.996
+camera_position=59.2034, 234.834, -184.745
+camera_up=4.49757, 65.196, 20.9904
+p_type=PERSPECTIVE
+p_left=-0.328057
+p_right=0.328057
+p_bottom=-0.205036
+p_top=0.205036
+p_near=0.495
+p_far=49.5
+viewport=0, 0, 1280, 800
+#### COMPUTATIONAL
+extract_hidden=false
+frustum_culling=false
+ring_size=4
+curvature_scale=20
+gradient_radius=1
+intersections_tol=1.0e-04
+raycast_tol=1.0e-03
+#### CONTOUR TYPES
+occlusive=true
+use_smooth=false
+boundaries=true
+sharp=false
+suggestive=false
+ridges=false
+valleys=false
+demarcating=false
+#### CHAINING
+chaining=true
+chain_angle=9e+01
+voting_factor=0.8
+#### FILTERING
+sharp_angle=3e+01
+suggestive_hysteresis=false
+suggestive_filtering=false
+suggestive_speed=0.2
+suggestive_threshold=0.2
+suggestive_tolerance=0.8
+suggestive_max_visibility=0.1
+suggestive_min_visibility=-1
+demarcating_filtering=false
+demarcating_hysteresis=false
+demarcating_threshold=0.05
+demarcating_tolerance=0.3
+demarcating_max_visibility=-0.3
+demarcating_min_visibility=-1
+ridges_hysteresis=false
+ridges_filtering=false
+ridges_threshold=4
+ridges_tolerance=6
+ridges_max_visibility=-1
+ridges_min_visibility=-1
+valleys_hysteresis=false
+valleys_filtering=false
+valleys_threshold=1
+valleys_tolerance=2
+valleys_max_visibility=0.1
+valleys_min_visibility=-1
+#### COLORS
+color_occlusive=0, 0, 0
+color_boundaries=0, 0, 0
+color_sharp=1, 0, 0
+color_suggestive=0.23921568627451, 0.690196078431373, 0.23921568627451
+color_ridges=0.941176470588235, 0.333333333333333, 0.941176470588235
+color_valleys=0.925490196078431, 0.670588235294118, 0.105882352941176
+color_demarcating=0.403921568627451, 0.796078431372549, 1
+color_hidden=0.9, 0.9, 0.9
+#### LINE WIDTHS
+width_occlusive=3
+width_valleys=1
+width_ridges=2
+width_suggestive=2
+width_demarcating=2
+width_boundaries=3
+width_sharp=1
+#### LINE ALPHAS
+opacity_occlusive=1
+opacity_valleys=1
+opacity_ridges=1
+opacity_suggestive=1
+opacity_demarcating=1
+opacity_boundaries=1
+opacity_sharp=1
