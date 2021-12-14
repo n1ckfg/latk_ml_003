@@ -7,3 +7,5 @@ output/*
 *.pth
 *.obj
 *.ply
+*.svg
+
