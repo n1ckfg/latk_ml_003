@@ -34,7 +34,7 @@ rm $OUTPUT_DIR/*.obj
 ./pipeline_004.sh "$INPUT_DIR" "$FIRST_INPUT_EXT" "$OUTPUT_DIR" "$DIMS" "$EPOCH" "$RESAMPLE"
 
 INPUT_DIR="output"
-INPUT_EXT="ply"
+INPUT_EXT="final.ply"
 RESAMPLE=0.1
 MIN_POINTS=2
 
