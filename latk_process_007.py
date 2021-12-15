@@ -19,16 +19,26 @@ def main():
     la.layers.append(latk.LatkLayer())
     counter = 0
 
+    urls = []
+
     for fileName in os.listdir(inputPath):
         if fileName.endswith(inputExt): 
-            frame = latk.LatkFrame()
-            la.layers[0].frames.append(frame)
+            url = os.path.abspath(os.path.join(inputPath, fileName))
+            urls.append(url)
+    urls.sort()
 
-            inputUrl = os.path.join(inputPath, fileName)
-            print("Loading " + inputUrl)
+    la = latk.Latk()
+    layer = latk.LatkLayer()
+    la.layers.append(layer)
+    for i in range(0, len(urls)):
+        frame = latk.LatkFrame(frame_number=i)
+        la.layers[0].frames.append(frame)
+
+    for i in range(0, len(urls)):  
+        print("\nLoading meshes " + str(i+1) + " / " + str(len(urls)))
 
             ms = ml.MeshSet()
-            ms.load_new_mesh(inputUrl)
+            ms.load_new_mesh(urls[i])
             mesh = ms.current_mesh()
 
             newSampleNum = int(mesh.vertex_number() * samplePercentage)
