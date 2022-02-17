@@ -43,4 +43,3 @@ echo
 echo 3.2. Transfer vertex color.
 python color_transfer.py -- %INPUT_DIR% _resample_pre.ply %OUTPUT_DIR% _resample_fake_post.ply _final.ply
 
-@pause

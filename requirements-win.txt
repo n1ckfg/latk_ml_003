@@ -1,5 +1,5 @@
-torch>=0.4.0
-torchvision
+#torch>=0.4.0
+#torchvision
 matplotlib
 numpy
 scipy
