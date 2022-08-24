@@ -42,11 +42,8 @@ def main():
         mesh = ms.current_mesh()
 
         newSampleNum = int(mesh.vertex_number() * samplePercentage)
-        if (mesh.edge_number() == 0 and mesh.face_number() == 0):
-            ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=True)
-        else:
-            ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=False)
-        ms.surface_reconstruction_ball_pivoting()
+        ms.generate_simplified_point_cloud(samplenum=newSampleNum)
+        ms.generate_surface_reconstruction_ball_pivoting()
         ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
         ms.save_current_mesh("input.ply", save_vertex_color=True)
 
