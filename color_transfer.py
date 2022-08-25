@@ -22,7 +22,7 @@ def main():
             ms.load_new_mesh(os.path.abspath(inputPath2)) # pymeshlab needs absolute paths
             
             # https://pymeshlab.readthedocs.io/en/latest/filter_list.html    
-            ms.apply_filter("vertex_attribute_transfer", sourcemesh=0, targetmesh=1)
+            ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
             ms.save_current_mesh(os.path.abspath(outputPath)) # pymeshlab needs absolute paths
 
 main()

@@ -34,42 +34,16 @@ def main():
             if (newSampleNum < 1):
                 newSampleNum = 1
 
-            '''
-            # The resample method can subtract points from an unstructured point cloud, 
-            # but needs connection information to add them.
-            if (samplePercentage > 1.0):
-                if (mesh.edge_number() == 0 and mesh.face_number() == 0):
-                    ms.surface_reconstruction_ball_pivoting()
-                ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=False)
-                ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
-            else:
-                ms.poisson_disk_sampling(samplenum=newSampleNum, subsample=True)
-            '''
-            if (mesh.edge_number() != 0 or mesh.face_number() != 0):
-                numUvs = 0
-                
-                try:
-                    numUvs = len(ms.current_mesh().vertex_tex_coord_matrix())
-                    if (numUvs > 0):
-                        print("Found " + str(numUvs) + " vertex texture coordinates.")
-                except:
-                    print("Found " + str(numUvs) + " vertex texture coordinates.")
+            try:
+                ms.transfer_texture_to_color_per_vertex(sourcemesh=0, targetmesh=0)     
+                print("Found texture, converting to vertex color.")
+            except:
+                print("No texture found.")
 
-                if (numUvs == 0):
-                    try:
-                        numUvs = len(ms.current_mesh().wedge_tex_coord_matrix())
-                        if (numUvs > 0):
-                            print("Found " + str(numUvs) + " wedge texture coordinates.")
-                    except:
-                        print("Found " + str(numUvs) + " wedge texture coordinates.")
-
-                if (numUvs > 0):
-                    ms.transfer_texture_to_color_per_vertex(sourcemesh=0, targetmesh=0)     
-            
             ms.generate_simplified_point_cloud(samplenum=newSampleNum) # exactnumflag=True
-            ms.generate_surface_reconstruction_ball_pivoting()
             ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
 
-            ms.save_current_mesh(os.path.abspath(outputUrl)) # pymeshlab needs absolute paths
+            ms.save_current_mesh(os.path.abspath(outputUrl), save_face_flag=False, save_wedge_texcoord=False) # pymeshlab needs absolute paths
+            print("")
 
 main()
