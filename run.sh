@@ -11,8 +11,8 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR
 
 dos2unix *.sh
+dos2unix test.template
 chmod +x *.sh
-chmod +x tools/SynDraw
 
 INPUT_DIR="input"
 FIRST_INPUT_EXT=".obj"

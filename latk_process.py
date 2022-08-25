@@ -44,7 +44,7 @@ def main():
         newSampleNum = int(mesh.vertex_number() * samplePercentage)
         ms.generate_simplified_point_cloud(samplenum=newSampleNum)
         ms.generate_surface_reconstruction_ball_pivoting()
-        ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=1)
+        ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
         ms.save_current_mesh("input.ply", save_vertex_color=True)
 
         os.system("SynDraw -p test.template")
@@ -74,7 +74,7 @@ def main():
         faces = np.array([[0,0,0]])
         mesh = ml.Mesh(vertices, faces)
         ms.add_mesh(mesh)
-        ms.vertex_attribute_transfer(sourcemesh=1, targetmesh=2)
+        ms.transfer_attributes_per_vertex(sourcemesh=1, targetmesh=2)
         
         strokeCounter = 0
         pointCounter = 0

@@ -10,4 +10,17 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
+mkdir input
+mkdir output
+
 pip install -r requirements.txt
+
+cd tools
+chmod +x SynDraw
+sudo cp SynDraw /usr/local/bin/
+
+cd ../model
+dos2unix get_model.sh
+bash get_model.sh
+
+cd ..
