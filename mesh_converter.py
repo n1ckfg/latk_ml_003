@@ -37,7 +37,7 @@ def binvoxToMesh(url, ext="_post.ply", dims=128, axis='xyz'):
     print("Writing to: " + newMeshUrl)
     mesh.export(newMeshUrl)
 
-def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, dimVals=None, axis='xyz'):
+def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
     translate = (0, 0, 0)
@@ -48,11 +48,11 @@ def meshToBinvox(url, ext="_pre.ply", dims=128, doFilter=False, normVals=None, d
     print("Reading from: " + url)
     mesh = trimesh.load(url)
 
-    if (normVals != None and dimVals !=None):
+    if (seqMin != None and seqMax !=None):
         for vert in mesh.vertices:
-            vert[0] = remap(vert[0], dimVals[0], dimVals[1], dims * normVals[0], (dims * normVals[1]) - 1)
-            vert[1] = remap(vert[1], dimVals[2], dimVals[3], dims * normVals[2], (dims * normVals[3]) - 1)
-            vert[2] = remap(vert[2], dimVals[4], dimVals[5], dims * normVals[4], (dims * normVals[5]) - 1)
+            vert[0] = remap(vert[0], seqMin, seqMax, 0, dims - 1)
+            vert[1] = remap(vert[1], seqMin, seqMax, 0, dims - 1)
+            vert[2] = remap(vert[2], seqMin, seqMax, 0, dims - 1)
     else:
         mesh.vertices = scale_numpy_array(mesh.vertices, 0, dims - 1)
 

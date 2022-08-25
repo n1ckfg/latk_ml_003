@@ -14,15 +14,9 @@ def main():
     dims = int(argv[3])
     doFilter = bool(distutils.util.strtobool(argv[4]))
 
-    seqMinX = 0
-    seqMaxX = 0
-    seqMinY = 0
-    seqMaxY = 0
-    seqMinZ = 0
-    seqMaxZ = 0
+    seqMin = 0.0
+    seqMax = 0.0
 
-    localDims = []
-    localNorms = []
     urls = []
 
     for fileName in os.listdir(inputPath):
@@ -32,63 +26,25 @@ def main():
 
             urls.append(url)
             mesh = trimesh.load(url)
-            
-            minX = 0
-            maxX = 0
-            minY = 0
-            maxY = 0
-            minZ = 0
-            maxZ = 0
-            
+                       
             for vert in mesh.vertices:
                 x = vert[0]
                 y = vert[1]
                 z = vert[2]
-                if (x < minX):
-                    minX = x
-                if (x > maxX):
-                    maxX = x
-                if (y < minY):
-                    minY = y
-                if (y > maxY):
-                    maxY = y
-                if (z < minZ):
-                    minZ = z
-                if (z > maxZ):
-                    maxZ = z
-
-            localDim = (minX, maxX, minY, maxY, minZ, maxZ)
-            #print(localDim)
-            localDims.append(localDim)
-
-            if (minX < seqMinX):
-                seqMinX = minX
-            if (maxX > seqMaxX):
-                seqMaxX = maxX
-            if (minY < seqMinY):
-                seqMinY = minY
-            if (maxY > seqMaxY):
-                seqMaxY = maxY
-            if (minZ < seqMinZ):
-                seqMinZ = minZ
-            if (maxZ > seqMaxZ):
-                seqMaxZ = maxZ
-
-    for localDim in localDims:
-        normMinX = mc.remap(localDim[0], seqMinX, seqMaxX, 0, 1)
-        normMaxX = mc.remap(localDim[1], seqMinX, seqMaxX, 0, 1)
-        normMinY = mc.remap(localDim[2], seqMinY, seqMaxY, 0, 1)
-        normMaxY = mc.remap(localDim[3], seqMinY, seqMaxY, 0, 1)
-        normMinZ = mc.remap(localDim[4], seqMinZ, seqMaxZ, 0, 1)
-        normMaxZ = mc.remap(localDim[5], seqMinZ, seqMaxZ, 0, 1)
-
-        normVals = (normMinX, normMaxX, normMinY, normMaxY, normMinZ, normMaxZ)
-        #print(normVals)
-
-        localNorms.append(normVals)
+                if (x < seqMin):
+                    seqMin = x
+                if (x > seqMax):
+                    seqMax = x
+                if (y < seqMin):
+                    seqMin = y
+                if (y > seqMax):
+                    seqMax = y
+                if (z < seqMin):
+                    seqMin = z
+                if (z > seqMax):
+                    seqMax = z
 
     for i, url in enumerate(urls):
-        #mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter)
-        mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, normVals=localNorms[i], dimVals=localDims[i])
+        mc.meshToBinvox(url=url, ext=outputExt, dims=dims, doFilter=doFilter, seqMin=seqMin, seqMax=seqMax)
 
 main()
