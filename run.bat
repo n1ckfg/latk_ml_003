@@ -20,14 +20,14 @@ del %OUTPUT_DIR%\*.im
 del %OUTPUT_DIR%\*.ply
 del %OUTPUT_DIR%\*.obj
 
-call pipeline_004.bat %INPUT_DIR% %FIRST_INPUT_EXT% %OUTPUT_DIR% %DIMS% %EPOCH% %RESAMPLE%
+call pipeline.bat %INPUT_DIR% %FIRST_INPUT_EXT% %OUTPUT_DIR% %DIMS% %EPOCH% %RESAMPLE%
 
 set INPUT_DIR=output
 set INPUT_EXT=final.ply
 set RESAMPLE=0.1
 set MIN_POINTS=2
 
-python latk_process_007.py -- %INPUT_DIR% %INPUT_EXT% %RESAMPLE% %MIN_POINTS%
+python latk_process.py -- %INPUT_DIR% %INPUT_EXT% %RESAMPLE% %MIN_POINTS%
 
 @pause
 

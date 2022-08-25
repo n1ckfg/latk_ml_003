@@ -12,6 +12,7 @@ cd $DIR
 
 dos2unix *.sh
 chmod +x *.sh
+chmod +x tools/SynDraw
 
 INPUT_DIR="input"
 FIRST_INPUT_EXT=".obj"
@@ -31,14 +32,14 @@ rm $OUTPUT_DIR/*.im
 rm $OUTPUT_DIR/*.ply
 rm $OUTPUT_DIR/*.obj
 
-./pipeline_004.sh "$INPUT_DIR" "$FIRST_INPUT_EXT" "$OUTPUT_DIR" "$DIMS" "$EPOCH" "$RESAMPLE"
+./pipeline.sh "$INPUT_DIR" "$FIRST_INPUT_EXT" "$OUTPUT_DIR" "$DIMS" "$EPOCH" "$RESAMPLE"
 
 INPUT_DIR="output"
 INPUT_EXT="final.ply"
 RESAMPLE=0.1
 MIN_POINTS=2
 
-python latk_process_007.py -- "$INPUT_DIR" "$INPUT_EXT" "$RESAMPLE" "$MIN_POINTS"
+python latk_process.py -- "$INPUT_DIR" "$INPUT_EXT" "$RESAMPLE" "$MIN_POINTS"
 
 
 
