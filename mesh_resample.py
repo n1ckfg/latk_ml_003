@@ -40,8 +40,15 @@ def main():
             except:
                 print("No texture found.")
 
-            ms.generate_simplified_point_cloud(samplenum=newSampleNum) # exactnumflag=True
-            ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
+            # The resample method can subtract points from an unstructured point cloud, 
+            # but needs connection information to add them.
+            if (samplePercentage > 1.0):
+                if (mesh.edge_number() == 0 and mesh.face_number() == 0):
+                    ms.generate_surface_reconstruction_ball_pivoting()
+                ms.generate_sampling_poisson_disk(samplenum=newSampleNum, subsample=False)
+                ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
+            else:
+                ms.generate_sampling_poisson_disk(samplenum=newSampleNum, subsample=True)
 
             ms.save_current_mesh(os.path.abspath(outputUrl), save_face_flag=False, save_wedge_texcoord=False) # pymeshlab needs absolute paths
             print("")

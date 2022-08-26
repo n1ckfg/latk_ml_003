@@ -42,7 +42,17 @@ def main():
         mesh = ms.current_mesh()
 
         newSampleNum = int(mesh.vertex_number() * samplePercentage)
-        ms.generate_simplified_point_cloud(samplenum=newSampleNum)
+
+        # The resample method can subtract points from an unstructured point cloud, 
+        # but needs connection information to add them.
+        if (samplePercentage > 1.0):
+            if (mesh.edge_number() == 0 and mesh.face_number() == 0):
+                ms.generate_surface_reconstruction_ball_pivoting()
+            ms.generate_sampling_poisson_disk(samplenum=newSampleNum, subsample=False)
+            ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
+        else:
+            ms.generate_sampling_poisson_disk(samplenum=newSampleNum, subsample=True)
+
         ms.generate_surface_reconstruction_ball_pivoting()
         ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
         ms.save_current_mesh("input.ply", save_vertex_color=True)
@@ -69,7 +79,7 @@ def main():
         allPoints = []
         for stroke in la.layers[0].frames[counter].strokes:
             for point in stroke.points:
-                allPoints.append([point.co[0], point.co[2], point.co[1]])
+                allPoints.append([point.co[0] / 100.0, point.co[2] / 100.0, point.co[1] / 100.0])
         vertices = np.array(allPoints)
         faces = np.array([[0,0,0]])
         mesh = ml.Mesh(vertices, faces)
