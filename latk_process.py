@@ -79,7 +79,7 @@ def main():
         allPoints = []
         for stroke in la.layers[0].frames[counter].strokes:
             for point in stroke.points:
-                allPoints.append([point.co[0] / 100.0, point.co[2] / 100.0, point.co[1] / 100.0])
+                allPoints.append([point.co[0], point.co[2], point.co[1]])
         vertices = np.array(allPoints)
         faces = np.array([[0,0,0]])
         mesh = ml.Mesh(vertices, faces)

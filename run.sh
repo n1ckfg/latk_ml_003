@@ -36,8 +36,8 @@ rm $OUTPUT_DIR/*.obj
 
 INPUT_DIR="output"
 INPUT_EXT="final.ply"
-RESAMPLE=0.1
-MIN_POINTS=2
+RESAMPLE=0.5
+MIN_POINTS=3
 
 python latk_process.py -- "$INPUT_DIR" "$INPUT_EXT" "$RESAMPLE" "$MIN_POINTS"
 
