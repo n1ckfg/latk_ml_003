@@ -55,6 +55,12 @@ def main():
 
         ms.generate_surface_reconstruction_ball_pivoting()
         ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
+
+        #ms.select_crease_edges()
+        #ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
+        #ms.surface_reconstruction_ball_pivoting()
+        #ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=2)
+
         ms.save_current_mesh("input.ply", save_vertex_color=True)
 
         os.system("SynDraw -p test.template")
