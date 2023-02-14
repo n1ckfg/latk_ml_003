@@ -1,0 +1,14 @@
+off
+png
+svg
+normals
+properties
+tmp
+dataset
+network
+__pycache__
+sample
+sketches
+virt_py3
+*.zip
+*.pyc

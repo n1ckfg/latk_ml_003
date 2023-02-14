@@ -1,0 +1,9 @@
+build*
+build*/*
+synthdraw
+synthdraw/*
+doc*
+doc/*
+*DS_*
+nbproject
+examples

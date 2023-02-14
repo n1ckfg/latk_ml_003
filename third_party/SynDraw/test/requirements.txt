@@ -1,0 +1,3 @@
+pymeshlab
+numpy
+latk

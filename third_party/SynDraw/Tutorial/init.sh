@@ -1,0 +1,1 @@
+mkdir properties svg png off normals tmp
