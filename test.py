@@ -130,7 +130,7 @@ def test():
     dataiter = iter(val_dataloader)
 
     def sample_voxel_volumes(index):
-        imgs = dataiter.next()
+        imgs = next(dataiter) #dataiter.next()
 
         """Saves a generated sample from the validation set"""
         real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
