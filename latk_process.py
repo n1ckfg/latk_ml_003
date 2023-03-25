@@ -5,6 +5,37 @@ from pathlib import Path
 import pymeshlab as ml
 import numpy as np
 import latk
+from scipy.spatial.distance import cdist
+
+'''
+def distance(point1, point2):
+    point1 = np.array(point1)
+    point2 = np.array(point2)
+    return np.linalg.norm(point1 - point2)
+'''
+
+def getBounds(mesh):
+    bounds = mesh.bounding_box().diagonal() #distance(mesh.bounds[0], mesh.bounds[1])
+    print("Bounds: " + str(bounds))
+    return bounds
+
+def group_points_into_strokes(points, radius, minPointsCount):
+    strokes = []
+    unassigned_points = set(range(len(points)))
+
+    while len(unassigned_points) > 0:
+        stroke = [next(iter(unassigned_points))]
+        unassigned_points.remove(stroke[0])
+
+        for i in range(len(points)):
+            if i in unassigned_points and cdist([points[i]], [points[stroke[-1]]])[0][0] < radius:
+                stroke.append(i)
+                unassigned_points.remove(i)
+
+        if (len(stroke) >= minPointsCount):
+            strokes.append(stroke)
+        print("Found " + str(len(strokes)) + " strokes, " + str(len(unassigned_points)) + " points remaining.")
+    return strokes
 
 def main():
     argv = sys.argv
@@ -63,6 +94,7 @@ def main():
 
         ms.save_current_mesh("input.ply", save_vertex_color=True)
 
+        '''
         os.system("SynDraw -p test.template")
 
         print("parsing SVG")
@@ -81,6 +113,21 @@ def main():
                         pass
                 if (len(lPoints) >= minStrokePoints):
                     la.layers[0].frames[counter].strokes.append(latk.LatkStroke(lPoints))
+        '''
+        bounds = getBounds(mesh)
+        searchRadius = bounds * 0.02
+        
+        strokes = group_points_into_strokes(mesh.vertex_matrix(), searchRadius, minStrokePoints) #mesh.vertices, searchRadius)
+
+        for stroke in strokes:
+            la_stroke = latk.LatkStroke()
+            for index in stroke:
+                vert = mesh.vertex_matrix()[index]
+                la_point = latk.LatkPoint(co=(vert[0], vert[2], vert[1]))
+                la_stroke.points.append(la_point)
+            la.layers[0].frames[counter].strokes.append(la_stroke)
+
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
         allPoints = []
         for stroke in la.layers[0].frames[counter].strokes:
@@ -108,6 +155,7 @@ def main():
         print("Finished frame " + str(counter+1))
         counter += 1
 
+    la.normalize()
     la.write("output.latk")
     print("Wrote latk")
 

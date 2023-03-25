@@ -3,11 +3,11 @@
 cd %~dp0
 
 set INPUT_DIR=input
-set FIRST_INPUT_EXT=.obj
+set FIRST_INPUT_EXT=.ply
 set OUTPUT_DIR=output
 set DIMS=256
 set EPOCH=100
-set RESAMPLE=0.5
+set RESAMPLE=1.0
 
 del %INPUT_DIR%\*.binvox
 del %INPUT_DIR%\*.im
@@ -24,8 +24,8 @@ call pipeline.bat %INPUT_DIR% %FIRST_INPUT_EXT% %OUTPUT_DIR% %DIMS% %EPOCH% %RES
 
 set INPUT_DIR=output
 set INPUT_EXT=final.ply
-set RESAMPLE=0.1
-set MIN_POINTS=2
+set RESAMPLE=1.0
+set MIN_POINTS=10
 
 python latk_process.py -- %INPUT_DIR% %INPUT_EXT% %RESAMPLE% %MIN_POINTS%
 
