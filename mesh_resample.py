@@ -16,11 +16,11 @@ def main():
 
     inputPath = argv[0]
     samplePercentage = float(argv[1])
-    inputFormat = argv[2]
+    inputFormat = argv[2] # not used
     outputFormat = argv[3]
 
     for fileName in os.listdir(inputPath):
-        if fileName.endswith(inputFormat): 
+        if fileName.endswith("obj") or fileName.endswith("ply"): #inputFormat): 
             inputUrl = os.path.join(inputPath, fileName)
             print("Resampling " + inputUrl)
             
