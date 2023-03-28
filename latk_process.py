@@ -72,6 +72,7 @@ def main():
         ms.load_new_mesh(urls[i])
         mesh = ms.current_mesh()
 
+        '''
         newSampleNum = int(mesh.vertex_number() * samplePercentage)
 
         # The resample method can subtract points from an unstructured point cloud, 
@@ -86,13 +87,13 @@ def main():
 
         ms.generate_surface_reconstruction_ball_pivoting()
         ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
-
+		'''
         #ms.select_crease_edges()
         #ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
         #ms.surface_reconstruction_ball_pivoting()
         #ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=2)
 
-        ms.save_current_mesh("input.ply", save_vertex_color=True)
+        #ms.save_current_mesh("input.ply", save_vertex_color=True)
 
         '''
         os.system("SynDraw -p test.template")
@@ -156,6 +157,7 @@ def main():
         counter += 1
 
     la.normalize()
+    la.refine(splitReps=0, smoothReps=20, reduceReps=0, doClean=True)
     la.write("output.latk")
     print("Wrote latk")
 
