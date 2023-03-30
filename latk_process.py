@@ -72,7 +72,6 @@ def main():
         ms.load_new_mesh(urls[i])
         mesh = ms.current_mesh()
 
-        '''
         newSampleNum = int(mesh.vertex_number() * samplePercentage)
 
         # The resample method can subtract points from an unstructured point cloud, 
@@ -81,20 +80,11 @@ def main():
             if (mesh.edge_number() == 0 and mesh.face_number() == 0):
                 ms.generate_surface_reconstruction_ball_pivoting()
             ms.generate_sampling_poisson_disk(samplenum=newSampleNum, subsample=False)
-            ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
         else:
             ms.generate_sampling_poisson_disk(samplenum=newSampleNum, subsample=True)
-
-        ms.generate_surface_reconstruction_ball_pivoting()
         ms.transfer_attributes_per_vertex(sourcemesh=0, targetmesh=1)
-		'''
-        #ms.select_crease_edges()
-        #ms.build_a_polyline_from_selected_edges() # this command creates a new mesh -> index 2
-        #ms.surface_reconstruction_ball_pivoting()
-        #ms.vertex_attribute_transfer(sourcemesh=0, targetmesh=2)
-
-        #ms.save_current_mesh("input.ply", save_vertex_color=True)
-
+        mesh = ms.current_mesh()
+        
         '''
         os.system("SynDraw -p test.template")
 
@@ -139,10 +129,11 @@ def main():
         mesh = ml.Mesh(vertices, faces)
         ms.add_mesh(mesh)
         ms.transfer_attributes_per_vertex(sourcemesh=1, targetmesh=2)
-        
+        mesh = ms.current_mesh()
+
         strokeCounter = 0
         pointCounter = 0
-        vertexColors = ms.current_mesh().vertex_color_matrix()
+        vertexColors = mesh.vertex_color_matrix()
 
         for vertexColor in vertexColors:
             color = (vertexColor[0], vertexColor[1], vertexColor[2], 1.0)
@@ -157,7 +148,7 @@ def main():
         counter += 1
 
     la.normalize()
-    la.refine(splitReps=0, smoothReps=20, reduceReps=0, doClean=True)
+    #la.refine()#splitReps=0, smoothReps=20, reduceReps=0, doClean=True)
     la.write("output.latk")
     print("Wrote latk")
 
