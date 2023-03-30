@@ -24,7 +24,7 @@ call pipeline.bat %INPUT_DIR% %FIRST_INPUT_EXT% %OUTPUT_DIR% %DIMS% %EPOCH% %RES
 
 set INPUT_DIR=output
 set INPUT_EXT=final.ply
-set RESAMPLE=0.5
+set RESAMPLE=0.25
 set MIN_POINTS=10
 
 python latk_process.py -- %INPUT_DIR% %INPUT_EXT% %RESAMPLE% %MIN_POINTS%

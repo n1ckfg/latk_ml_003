@@ -148,7 +148,7 @@ def main():
         counter += 1
 
     la.normalize()
-    #la.refine()#splitReps=0, smoothReps=20, reduceReps=0, doClean=True)
+    #la.refine() #splitReps=0, smoothReps=20, reduceReps=0, doClean=True)
     la.write("output.latk")
     print("Wrote latk")
 
