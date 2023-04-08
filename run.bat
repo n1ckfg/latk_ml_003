@@ -26,8 +26,9 @@ set INPUT_DIR=output
 set INPUT_EXT=final.ply
 set RESAMPLE=0.25
 set MIN_POINTS=10
+set SEARCH_DIST=0.02
 
-python latk_process.py -- %INPUT_DIR% %INPUT_EXT% %RESAMPLE% %MIN_POINTS%
+python latk_process.py -- %INPUT_DIR% %INPUT_EXT% %RESAMPLE% %MIN_POINTS% %SEARCH_DIST%
 
 @pause
 

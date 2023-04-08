@@ -45,6 +45,7 @@ def main():
     inputExt = argv[1] # "_final.ply"
     samplePercentage = float(argv[2]) #0.1
     minStrokePoints = int(argv[3]) #2
+    baseSearchDistance = float(argv[4]) #0.02
 
     la = latk.Latk()
     la.layers.append(latk.LatkLayer())
@@ -106,7 +107,7 @@ def main():
                     la.layers[0].frames[counter].strokes.append(latk.LatkStroke(lPoints))
         '''
         bounds = getBounds(mesh)
-        searchRadius = bounds * 0.02
+        searchRadius = bounds * baseSearchDistance
         
         strokes = group_points_into_strokes(mesh.vertex_matrix(), searchRadius, minStrokePoints) #mesh.vertices, searchRadius)
 

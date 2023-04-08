@@ -38,8 +38,9 @@ INPUT_DIR="output"
 INPUT_EXT="final.ply"
 RESAMPLE=0.5
 MIN_POINTS=3
+SEARCH_DIST=0.02
 
-python latk_process.py -- "$INPUT_DIR" "$INPUT_EXT" "$RESAMPLE" "$MIN_POINTS"
+python latk_process.py -- "$INPUT_DIR" "$INPUT_EXT" "$RESAMPLE" "$MIN_POINTS" "$SEARCH_DIST"
 
 
 
