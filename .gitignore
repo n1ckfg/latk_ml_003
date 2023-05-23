@@ -8,4 +8,5 @@ output/*
 *.obj
 *.ply
 *.svg
+.DS_Store
 
