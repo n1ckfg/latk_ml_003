@@ -29,7 +29,7 @@ rem *.binvox -> *.im
 rem ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo
 echo 2. Inference...
-python test.py --epoch %EPOCH% --dataset %INPUT_DIR% --img_width %DIMS% --img_height %DIMS% --img_depth %DIMS%
+python vox2vox\test.py --epoch %EPOCH% --dataset %INPUT_DIR% --img_width %DIMS% --img_height %DIMS% --img_depth %DIMS%
 
 rem ~ ~ ~ ~ ~ ~ ~ ~ ~
 echo

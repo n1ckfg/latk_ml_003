@@ -15,12 +15,12 @@ mkdir output
 
 pip install -r requirements.txt
 
-cd tools
-chmod +x SynDraw
-sudo cp SynDraw /usr/local/bin/
+#cd tools
+#chmod +x SynDraw
+#sudo cp SynDraw /usr/local/bin/
 
-cd ../model
+cd vox2vox/model
 dos2unix get_model.sh
 bash get_model.sh
 
-cd ..
+

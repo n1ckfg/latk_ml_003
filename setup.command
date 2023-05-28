@@ -20,8 +20,8 @@ pip install -r requirements.txt
 #sudo cp SynDraw /usr/local/bin/
 
 #cd ../model
-cd model
+cd vox2vox/model
 #dos2unix get_model.sh
 bash get_model.sh
 
-cd ..
+
