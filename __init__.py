@@ -34,7 +34,7 @@ class latkml003Preferences(bpy.types.AddonPreferences):
 # https://docs.blender.org/api/current/bpy.types.AddonPreferences.html
 class OBJECT_OT_latkml003_prefs(Operator):
     """Display example preferences"""
-    bl_idname = "object.steve" #+ __name__
+    bl_idname = "object.latkml003" #+ __name__
     bl_label = "latkml003 Preferences"
     bl_options = {'REGISTER', 'UNDO'}
 
