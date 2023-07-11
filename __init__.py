@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "latk-ml-003", 
+    "name": "latk_ml_003", 
     "author": "Nick Fox-Gieg",
 	"version": (0, 0, 1),
 	"blender": (3, 0, 0),
