@@ -145,51 +145,17 @@ def loadModel():
     return returns
 
 def modelSelector(modelName):
-    if (modelName == "anime"):
-        return Informative_Drawings_PyTorch("checkpoints/anime_style/netG_A_latest.pth")
-    elif (modelName == "contour"):
-        return Informative_Drawings_PyTorch("checkpoints/contour_style/netG_A_latest.pth")
-    elif (modelName == "opensketch"):
-        return Informative_Drawings_PyTorch("checkpoints/opensketch_style/netG_A_latest.pth")
+    if (modelName == "256v001"):
+        return Vox2Vox_PyTorch("model/generator_100.pth")
+    elif (modelName == "256v002"):
+        return Vox2Vox_PyTorch("model/generator_100.pth")
+    elif (modelName == "256v003"):
+        return Vox2Vox_PyTorch("model/generator_100.pth")
     else:
         return None
 
 def doInference(net):
     latkml003 = bpy.context.scene.latkml003_settings
-
-def separatePointsByDistance(points, colors, threshold):
-    if (len(points) != len(colors)):
-        return None
-
-    separatedPoints = []
-    separatedColors = []
-    currentPoints = []
-    currentColors = []
-
-    for i in range(0, len(points) - 1):
-        currentPoints.append(points[i])
-        currentColors.append(colors[i])
-
-        distance = lb.getDistance(points[i], points[i + 1])
-
-        if (distance > threshold):
-            separatedPoints.append(currentPoints)
-            separatedColors.append(currentColors)
-            currentPoints = []
-            currentColors = []
-
-    currentPoints.append(points[len(points) - 1])
-    currentColors.append(colors[len(colors) - 1])
-    separatedPoints.append(currentPoints)
-    separatedColors.append(currentColors)
-
-    return separatedPoints, separatedColors
-
-def setThickness(thickness):
-    gp = lb.getActiveGp()
-    bpy.ops.object.gpencil_modifier_add(type="GP_THICK")
-    gp.grease_pencil_modifiers["Thickness"].thickness_factor = thickness 
-    bpy.ops.object.gpencil_modifier_apply(apply_as="DATA", modifier="Thickness")
 
 def getPyTorchDevice():
     device = None
