@@ -14,6 +14,7 @@ from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
 import torch
 
+
 class latkml003Preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
@@ -32,6 +33,7 @@ class latkml003Preferences(bpy.types.AddonPreferences):
         #row = layout.row()
         #row.prop(self, "extraFormats_Painter")
 
+
 # This is needed to display the preferences menu
 # https://docs.blender.org/api/current/bpy.types.AddonPreferences.html
 class OBJECT_OT_latkml003_prefs(Operator):
@@ -44,6 +46,7 @@ class OBJECT_OT_latkml003_prefs(Operator):
         preferences = context.preferences
         addon_prefs = preferences.addons[__name__].preferences
         return {'FINISHED'}
+
 
 class latkml003Properties(bpy.types.PropertyGroup):
     """Properties for latkml003"""
@@ -67,10 +70,71 @@ class latkml003Properties(bpy.types.PropertyGroup):
     )
 
     latkml003_thickness: FloatProperty(
-        name="thickness",
+        name="Thickness",
         description="...",
         default=10.0
     )
+
+    strokegen1_strokeLength: IntProperty(
+        name="Length",
+        description="Group every n points into strokes",
+        default=10
+    )
+
+    strokegen1_strokeGaps: FloatProperty(
+        name="Gaps",
+        description="Skip points greater than this distance away",
+        default=10.0
+    )
+
+    strokegen1_shuffleOdds: FloatProperty(
+        name="Odds",
+        description="Odds of shuffling the points in a stroke",
+        default=1.0
+    )
+
+    strokegen1_spreadPoints: FloatProperty(
+        name="Spread",
+        description="Distance to randomize points",
+        default=0.1
+    )
+
+    strokegen2_radius: FloatProperty(
+        name="Radius",
+        description="Base search distance for points",
+        default=2
+    )
+
+    strokegen2_minPointsCount: IntProperty(
+        name="Min Points Count",
+        description="Minimum number of points to make a stroke",
+        default=10
+    )
+
+
+class Latk_Button_StrokeGen1(bpy.types.Operator):
+    """Generate GP strokes from a mesh"""
+    bl_idname = "latkml003_button.strokegen1"
+    bl_label = "StrokeGen1"
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        latk_settings = bpy.context.scene.latk_settings
+        strokeGen1(strokeLength=latk_settings.strokegen1_strokeLength, strokeGaps=latk_settings.strokegen1_strokeGaps, shuffleOdds=latk_settings.strokegen1_shuffleOdds, spreadPoints=latk_settings.strokegen1_spreadPoints, limitPalette=latk_settings.paletteLimit)
+        return {'FINISHED'}
+
+
+class Latk_Button_StrokeGen2(bpy.types.Operator):
+    """Generate GP strokes from a mesh"""
+    bl_idname = "latkml003_button.strokegen2"
+    bl_label = "StrokeGen2"
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        latk_settings = bpy.context.scene.latk_settings
+        strokeGen2(radius=latk_settings.strokegen2_radius, minPointsCount=latk_settings.strokegen2_minPointsCount)
+        return {'FINISHED'}
+
 
 class latkml003_Button_AllFrames(bpy.types.Operator):
     """Operate on all frames"""
@@ -95,6 +159,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
         lb.setThickness(latkml003.latkml003_thickness)
         return {'FINISHED'}
 
+
 class latkml003_Button_SingleFrame(bpy.types.Operator):
     """Operate on a single frame"""
     bl_idname = "latkml003_button.singleframe"
@@ -113,6 +178,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         lb.fromLatkToGp(la, resizeTimeline=False)
         lb.setThickness(latkml003.latkml003_thickness)
         return {'FINISHED'}
+
 
 # https://blender.stackexchange.com/questions/167862/how-to-create-a-button-on-the-n-panel
 class latkml003Properties_Panel(bpy.types.Panel):
@@ -142,6 +208,19 @@ class latkml003Properties_Panel(bpy.types.Panel):
 
         row = layout.row()
         row.prop(latkml003, "latkml003_thickness")
+
+        row = layout.row()
+        row.operator("latk_button.strokegen1")
+        row.prop(latk, "strokegen1_strokeLength")
+        row.prop(latk, "strokegen1_strokeGaps")
+        row.prop(latk, "strokegen1_shuffleOdds")
+        row.prop(latk, "strokegen1_spreadPoints")
+
+        row = layout.row()
+        row.operator("latk_button.strokegen2")
+        row.prop(latk, "strokegen2_radius")
+        row.prop(latk, "strokegen2_minPointsCount")
+
 
 classes = (
     OBJECT_OT_latkml003_prefs,
@@ -222,3 +301,140 @@ class Vox2Vox_PyTorch():
             result = cv2.resize(result, (srcimg.shape[1], srcimg.shape[0]))
             
             return result
+
+
+def strokeGen1(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, spreadPoints=0.1, limitPalette=32):
+    if not obj:
+        obj = lb.ss()
+    mesh = obj.data
+    mat = obj.matrix_world
+    #~
+    gp = lb.getActiveGp()
+    layer = lb.getActiveLayer()
+    if not layer:
+        layer = gp.data.layers.new(name="meshToGp")
+    frame = lb.getActiveFrame()
+    if not frame or frame.frame_number != lb.currentFrame():
+        frame = layer.frames.new(lb.currentFrame())
+    #~
+    images = None
+    try:
+        images = lb.getUvImages()
+    except:
+        pass
+    #~
+    allPoints, allColors = lb.getVerts(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
+    #~
+    pointSeqsToAdd = []
+    colorsToAdd = []
+    for i in range(0, len(allPoints), strokeLength):
+        color = None
+        if not images:
+            try:
+                color = allColors[i]
+            except:
+                color = lb.getColorExplorer(obj, i)
+        else:
+            try:
+                color = lb.getColorExplorer(obj, i, images)
+            except:
+                color = lb.getColorExplorer(obj, i)
+        colorsToAdd.append(color)
+        #~
+        pointSeq = []
+        for j in range(0, strokeLength):
+            #point = allPoints[i]
+            try:
+                point = allPoints[i+j]
+                if (len(pointSeq) == 0 or lb.getDistance(pointSeq[len(pointSeq)-1], point) < strokeGaps):
+                    pointSeq.append(point)
+            except:
+                break
+        if (len(pointSeq) > 0): 
+            pointSeqsToAdd.append(pointSeq)
+    for i, pointSeq in enumerate(pointSeqsToAdd):
+        color = colorsToAdd[i]
+        #createColor(color)
+        if (limitPalette == 0):
+            lb.createColor(color)
+        else:
+            lb.createAndMatchColorPalette(color, limitPalette, 5) # num places
+        #stroke = frame.strokes.new(getActiveColor().name)
+        #stroke.draw_mode = "3DSPACE"
+        stroke = frame.strokes.new()
+        stroke.display_mode = '3DSPACE'
+        stroke.line_width = 10 # adjusted from 100 for 2.93
+        stroke.material_index = gp.active_material_index
+
+        stroke.points.add(len(pointSeq))
+
+        if (random.random() < shuffleOdds):
+            random.shuffle(pointSeq)
+
+        for j, point in enumerate(pointSeq):    
+            x = point[0] + (random.random() * 2.0 * spreadPoints) - spreadPoints
+            y = point[2] + (random.random() * 2.0 * spreadPoints) - spreadPoints
+            z = point[1] + (random.random() * 2.0 * spreadPoints) - spreadPoints
+            pressure = 1.0
+            strength = 1.0
+            lb.createPoint(stroke, j, (x, y, z), pressure, strength)
+
+def strokeGen2(obj=None, radius=2, minPointsCount=10, limitPalette=32):
+    if not obj:
+        obj = lb.ss()
+    mesh = obj.data
+    mat = obj.matrix_world
+    #~
+    gp = lb.getActiveGp()
+    layer = lb.getActiveLayer()
+    if not layer:
+        layer = gp.data.layers.new(name="meshToGp")
+    frame = lb.getActiveFrame()
+    if not frame or frame.frame_number != lb.currentFrame():
+        frame = layer.frames.new(lb.currentFrame())
+    #~
+    images = None
+    try:
+        images = lb.getUvImages()
+    except:
+        pass
+    #~
+    allPoints, allColors = lb.getVerts(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
+    #~
+    strokeGroups = lb.group_points_into_strokes(allPoints, radius, minPointsCount)
+
+    for i, strokeGroup in enumerate(strokeGroups):
+        colorIndex = strokeGroup[0]
+
+        if not images:
+            try:
+                color = allColors[colorIndex]
+            except:
+                color = lb.getColorExplorer(obj, colorIndex)
+        else:
+            try:
+                color = lb.getColorExplorer(obj, colorIndex, images)
+            except:
+                color = lb.getColorExplorer(obj, colorIndex)
+        color = (color[0], color[1], color[2])
+
+        if (limitPalette == 0):
+            lb.createColor(color)
+        else:
+            lb.createAndMatchColorPalette(color, limitPalette, 5) # num places
+        
+        stroke = frame.strokes.new()
+        stroke.display_mode = '3DSPACE'
+        stroke.line_width = 10 # adjusted from 100 for 2.93
+        stroke.material_index = gp.active_material_index
+
+        stroke.points.add(len(strokeGroup))
+
+        for j, index in enumerate(strokeGroup):    
+            point = allPoints[index]
+            x = point[0]
+            y = point[2]
+            z = point[1]
+            pressure = 1.0
+            strength = 1.0
+            lb.createPoint(stroke, j, (x, y, z), pressure, strength)
