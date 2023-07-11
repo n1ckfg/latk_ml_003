@@ -12,6 +12,8 @@ from bpy.types import Operator, AddonPreferences
 from bpy.props import (BoolProperty, FloatProperty, StringProperty, IntProperty, PointerProperty, EnumProperty)
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
+import torch
+
 class latkml003Preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
@@ -54,6 +56,19 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default=True
     )
 	'''
+
+    latkml003_Model: EnumProperty(
+        name="Model",
+        items=(
+            ("ANIME", "Anime", "...", 0),
+            ("CONTOUR", "Contour", "...", 1),
+            ("OPENSKETCH", "OpenSketch", "...", 2),
+            ("PXP_001", "PxP 001", "...", 3),
+            ("PXP_002", "PxP 002", "...", 4),
+            ("PXP_NEURALCONTOURS", "PxP NeuralContours", "...", 5)
+        ),
+        default="ANIME"
+    )
 
 class latkml003_Button_AllFrames(bpy.types.Operator):
     """Operate on all frames"""
@@ -99,7 +114,9 @@ class latkml003Properties_Panel(bpy.types.Panel):
         row = layout.row()
         row.operator("latkml003_button.singleframe")
         row.operator("latkml003_button.allframes")
-        #row.prop(latkml003, "material_shader_mode")
+
+        row = layout.row()
+        row.prop(latkml003, "latkml003_Model")
 
 classes = (
     OBJECT_OT_latkml003_prefs,
@@ -123,3 +140,94 @@ def unregister():
 if __name__ == "__main__":
     register()
 
+def getModelPath(url):
+    return os.path.join(findAddonPath(), url)
+
+def loadModel():
+    latkml003 = bpy.context.scene.latkml003_settings
+    returns = modelSelector(latkml003.latkml003_Model.lower())
+    return returns
+
+def modelSelector(modelName):
+    if (modelName == "anime"):
+        return Informative_Drawings_PyTorch("checkpoints/anime_style/netG_A_latest.pth")
+    elif (modelName == "contour"):
+        return Informative_Drawings_PyTorch("checkpoints/contour_style/netG_A_latest.pth")
+    elif (modelName == "opensketch"):
+        return Informative_Drawings_PyTorch("checkpoints/opensketch_style/netG_A_latest.pth")
+    else:
+        return None
+
+def doInference(net):
+    latkml003 = bpy.context.scene.latkml003_settings
+
+def separatePointsByDistance(points, colors, threshold):
+    if (len(points) != len(colors)):
+        return None
+
+    separatedPoints = []
+    separatedColors = []
+    currentPoints = []
+    currentColors = []
+
+    for i in range(0, len(points) - 1):
+        currentPoints.append(points[i])
+        currentColors.append(colors[i])
+
+        distance = lb.getDistance(points[i], points[i + 1])
+
+        if (distance > threshold):
+            separatedPoints.append(currentPoints)
+            separatedColors.append(currentColors)
+            currentPoints = []
+            currentColors = []
+
+    currentPoints.append(points[len(points) - 1])
+    currentColors.append(colors[len(colors) - 1])
+    separatedPoints.append(currentPoints)
+    separatedColors.append(currentColors)
+
+    return separatedPoints, separatedColors
+
+def setThickness(thickness):
+    gp = lb.getActiveGp()
+    bpy.ops.object.gpencil_modifier_add(type="GP_THICK")
+    gp.grease_pencil_modifiers["Thickness"].thickness_factor = thickness 
+    bpy.ops.object.gpencil_modifier_apply(apply_as="DATA", modifier="Thickness")
+
+def getPyTorchDevice():
+    device = None
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+        return device
+
+def createPyTorchNetwork(modelPath, net_G, input_nc=3, output_nc=1, n_blocks=3):
+    device = getPyTorchDevice()
+    modelPath = getModelPath(modelPath)
+    net_G.to(device)
+    net_G.load_state_dict(torch.load(modelPath, map_location=device))
+    net_G.eval()
+    return net_G
+
+
+class Vox2Vox_PyTorch():
+    def __init__(self, modelPath):
+        self.device = getPyTorchDevice()         
+        generator = Generator(3, 1, 3) # input_nc=3, output_nc=1, n_blocks=3
+        self.net_G = createPyTorchNetwork(modelPath, generator, self.device)   
+
+    def detect(self, srcimg):
+        with torch.no_grad():   
+            srcimg2 = np.transpose(srcimg, (2, 0, 1))
+
+            tensor_array = torch.from_numpy(srcimg2)
+            input_tensor = tensor_array.to(self.device)
+            output_tensor = self.net_G(input_tensor)
+
+            result = output_tensor.detach().cpu().numpy().transpose(1, 2, 0)
+            result *= 255
+            result = cv2.resize(result, (srcimg.shape[1], srcimg.shape[0]))
+            
+            return result
