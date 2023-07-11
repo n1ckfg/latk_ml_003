@@ -60,14 +60,10 @@ class latkml003Properties(bpy.types.PropertyGroup):
     latkml003_Model: EnumProperty(
         name="Model",
         items=(
-            ("ANIME", "Anime", "...", 0),
-            ("CONTOUR", "Contour", "...", 1),
-            ("OPENSKETCH", "OpenSketch", "...", 2),
-            ("PXP_001", "PxP 001", "...", 3),
-            ("PXP_002", "PxP 002", "...", 4),
-            ("PXP_NEURALCONTOURS", "PxP NeuralContours", "...", 5)
+            ("256V001", "256x256 v001", "...", 0),
+            ("256V002", "256x256 v002", "...", 1)
         ),
-        default="ANIME"
+        default="256V001"
     )
 
 class latkml003_Button_AllFrames(bpy.types.Operator):
