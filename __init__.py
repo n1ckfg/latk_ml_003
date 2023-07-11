@@ -66,6 +66,12 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default="256V001"
     )
 
+    latkml003_thickness: FloatProperty(
+        name="thickness",
+        description="...",
+        default=10.0
+    )
+
 class latkml003_Button_AllFrames(bpy.types.Operator):
     """Operate on all frames"""
     bl_idname = "latkml003_button.allframes"
@@ -73,8 +79,20 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
     bl_options = {'UNDO'}
     
     def execute(self, context):
-        # function goes here
-        pass
+        latkml003 = context.scene.latkml003_settings
+        net1, net2 = loadModel()
+
+        la = latk.Latk()
+        la.layers.append(latk.LatkLayer())
+
+        start, end = lb.getStartEnd()
+        for i in range(start, end):
+            lb.goToFrame(i)
+            laFrame = doInference(net1, net2)
+            la.layers[0].frames.append(laFrame)
+
+        lb.fromLatkToGp(la, resizeTimeline=False)
+        lb.setThickness(latkml003.latkml003_thickness)
         return {'FINISHED'}
 
 class latkml003_Button_SingleFrame(bpy.types.Operator):
@@ -84,8 +102,16 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
     bl_options = {'UNDO'}
     
     def execute(self, context):
-        # function goes here
-        pass
+        latkml003 = context.scene.latkml003_settings
+        net1, net2 = loadModel()
+
+        la = latk.Latk()
+        la.layers.append(latk.LatkLayer())
+        laFrame = doInference(net1, net2)
+        la.layers[0].frames.append(laFrame)
+        
+        lb.fromLatkToGp(la, resizeTimeline=False)
+        lb.setThickness(latkml003.latkml003_thickness)
         return {'FINISHED'}
 
 # https://blender.stackexchange.com/questions/167862/how-to-create-a-button-on-the-n-panel
@@ -113,6 +139,9 @@ class latkml003Properties_Panel(bpy.types.Panel):
 
         row = layout.row()
         row.prop(latkml003, "latkml003_Model")
+
+        row = layout.row()
+        row.prop(latkml003, "latkml003_thickness")
 
 classes = (
     OBJECT_OT_latkml003_prefs,
