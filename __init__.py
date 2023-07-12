@@ -1,8 +1,8 @@
 bl_info = {
     "name": "latk_ml_003", 
     "author": "Nick Fox-Gieg",
-	"version": (0, 0, 1),
-	"blender": (3, 0, 0),
+    "version": (0, 0, 1),
+    "blender": (3, 0, 0),
     "description": "Generate brushstrokes from a mesh using vox2vox",
     "category": "Animation"
 }
@@ -29,7 +29,7 @@ class latkml003Preferences(bpy.types.AddonPreferences):
         description = "After Effects JSX export",
         default = False
     )
-	'''
+    '''
 
     def draw(self, context):
         layout = self.layout
@@ -63,7 +63,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
         description="Off: major speedup if you're staying in Blender. On: slower but keeps everything exportable",
         default=True
     )
-	'''
+    '''
 
     latkml003_Model: EnumProperty(
         name="Model",
@@ -233,8 +233,8 @@ classes = (
     latkml003Preferences,
     latkml003Properties,
     latkml003Properties_Panel,
-	latkml003_Button_AllFrames,
-	latkml003_Button_SingleFrame,
+    latkml003_Button_AllFrames,
+    latkml003_Button_SingleFrame,
     latkml003_Button_StrokeGen1,
     latkml003_Button_StrokeGen2
 )
@@ -257,10 +257,12 @@ def getModelPath(url):
 
 def loadModel():
     latkml003 = bpy.context.scene.latkml003_settings
-    returns = modelSelector(latkml003.latkml003_Model.lower())
+    returns = modelSelector(latkml003.latkml003_Model)
     return returns
 
 def modelSelector(modelName):
+    modelName = modelName.lower()
+    
     if (modelName == "256v001"):
         return Vox2Vox_PyTorch("model/generator_100.pth")
     elif (modelName == "256v002"):
