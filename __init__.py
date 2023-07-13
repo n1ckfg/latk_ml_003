@@ -80,6 +80,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default=10.0
     )
 
+    '''
     strokegen1_strokeLength: IntProperty(
         name="Length",
         description="Group every n points into strokes",
@@ -103,6 +104,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
         description="Distance to randomize points",
         default=0.1
     )
+    '''
 
     strokegen2_radius: FloatProperty(
         name="Radius",
@@ -113,10 +115,11 @@ class latkml003Properties(bpy.types.PropertyGroup):
     strokegen2_minPointsCount: IntProperty(
         name="Min Points Count",
         description="Minimum number of points to make a stroke",
-        default=10
+        default=5
     )
 
 
+'''
 class latkml003_Button_StrokeGen1(bpy.types.Operator):
     """Generate GP strokes from a mesh"""
     bl_idname = "latkml003_button.strokegen1"
@@ -128,12 +131,12 @@ class latkml003_Button_StrokeGen1(bpy.types.Operator):
         latk = context.scene.latk_settings
         strokeGen1(strokeLength=latkml003.strokegen1_strokeLength, strokeGaps=latkml003.strokegen1_strokeGaps, shuffleOdds=latkml003.strokegen1_shuffleOdds, spreadPoints=latkml003.strokegen1_spreadPoints, limitPalette=latk.paletteLimit)
         return {'FINISHED'}
-
+'''
 
 class latkml003_Button_StrokeGen2(bpy.types.Operator):
     """Generate GP strokes from a mesh"""
     bl_idname = "latkml003_button.strokegen2"
-    bl_label = "StrokeGen 2"
+    bl_label = "StrokeGen"
     bl_options = {'UNDO'}
     
     def execute(self, context):
@@ -141,6 +144,27 @@ class latkml003_Button_StrokeGen2(bpy.types.Operator):
         strokeGen2(radius=latkml003.strokegen2_radius, minPointsCount=latkml003.strokegen2_minPointsCount)
         return {'FINISHED'}
 
+class latkml003_Button_ContourGen(bpy.types.Operator):
+    """Generate GP strokes from a mesh"""
+    bl_idname = "latkml003_button.contourgen"
+    bl_label = "ContourGen"
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        latkml003 = context.scene.latkml003_settings
+        contourGen()
+        return {'FINISHED'}
+
+class latkml003_Button_SkelGen(bpy.types.Operator):
+    """Generate GP strokes from a mesh"""
+    bl_idname = "latkml003_button.skelgen"
+    bl_label = "SkelGen"
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        latkml003 = context.scene.latkml003_settings
+        skelGen()
+        return {'FINISHED'}
 
 class latkml003_Button_AllFrames(bpy.types.Operator):
     """Operate on all frames"""
@@ -215,18 +239,25 @@ class latkml003Properties_Panel(bpy.types.Panel):
         row = layout.row()
         row.prop(latkml003, "latkml003_thickness")
 
+        '''
         row = layout.row()
         row.operator("latkml003_button.strokegen1")
         row.prop(latkml003, "strokegen1_strokeLength")
         row.prop(latkml003, "strokegen1_strokeGaps")
         row.prop(latkml003, "strokegen1_shuffleOdds")
         row.prop(latkml003, "strokegen1_spreadPoints")
+        '''
 
         row = layout.row()
         row.operator("latkml003_button.strokegen2")
         row.prop(latkml003, "strokegen2_radius")
         row.prop(latkml003, "strokegen2_minPointsCount")
 
+        row = layout.row()
+        row.operator("latkml003_button.contourgen")
+
+        row = layout.row()
+        row.operator("latkml003_button.skelgen")
 
 classes = (
     OBJECT_OT_latkml003_prefs,
@@ -235,8 +266,9 @@ classes = (
     latkml003Properties_Panel,
     latkml003_Button_AllFrames,
     latkml003_Button_SingleFrame,
-    latkml003_Button_StrokeGen1,
-    latkml003_Button_StrokeGen2
+    latkml003_Button_StrokeGen2,
+    latkml003_Button_ContourGen,
+    latkml003_Button_SkelGen
 )
 
 def register():
@@ -312,7 +344,7 @@ class Vox2Vox_PyTorch():
             
             return result
 
-
+'''
 def strokeGen1(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, spreadPoints=0.1, limitPalette=32):
     if not obj:
         obj = lb.ss()
@@ -388,8 +420,9 @@ def strokeGen1(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, sprea
             pressure = 1.0
             strength = 1.0
             lb.createPoint(stroke, j, (x, y, z), pressure, strength)
+'''
 
-def strokeGen2(obj=None, radius=2, minPointsCount=10, limitPalette=32):
+def strokeGen2(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     if not obj:
         obj = lb.ss()
     mesh = obj.data
@@ -448,3 +481,9 @@ def strokeGen2(obj=None, radius=2, minPointsCount=10, limitPalette=32):
             pressure = 1.0
             strength = 1.0
             lb.createPoint(stroke, j, (x, y, z), pressure, strength)
+
+def contourGen():
+    pass
+
+def skelGen():
+    pass
