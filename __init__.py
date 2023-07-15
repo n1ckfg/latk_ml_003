@@ -57,14 +57,6 @@ class latkml003Properties(bpy.types.PropertyGroup):
     """Properties for latkml003"""
     bl_idname = "GREASE_PENCIL_PT_latkml003Properties"
 
-    '''
-    bakeMesh: BoolProperty(
-        name="Bake",
-        description="Off: major speedup if you're staying in Blender. On: slower but keeps everything exportable",
-        default=True
-    )
-    '''
-
     latkml003_Model: EnumProperty(
         name="Model",
         items=(
@@ -93,7 +85,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
     )
 
 
-class latkml003_Button_StrokeGen2(bpy.types.Operator):
+class latkml003_Button_StrokeGen(bpy.types.Operator):
     """Generate GP strokes from a mesh"""
     bl_idname = "latkml003_button.strokegen"
     bl_label = "StrokeGen"
@@ -182,9 +174,6 @@ class latkml003Properties_Panel(bpy.types.Panel):
     bl_category = "Latk"
     bl_region_type = 'UI'
     #bl_context = "objectmode" # "mesh_edit"
-
-    #def draw_header(self, context):
-        #self.layout.prop(context.scene.freestyle_gpencil_export, "enable_latk", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -298,83 +287,6 @@ class Vox2Vox_PyTorch():
             
             return result
 
-'''
-def strokeGen1(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, spreadPoints=0.1, limitPalette=32):
-    if not obj:
-        obj = lb.ss()
-    mesh = obj.data
-    mat = obj.matrix_world
-    #~
-    gp = lb.getActiveGp()
-    layer = lb.getActiveLayer()
-    if not layer:
-        layer = gp.data.layers.new(name="meshToGp")
-    frame = lb.getActiveFrame()
-    if not frame or frame.frame_number != lb.currentFrame():
-        frame = layer.frames.new(lb.currentFrame())
-    #~
-    images = None
-    try:
-        images = lb.getUvImages()
-    except:
-        pass
-    #~
-    allPoints, allColors = lb.getVerts(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
-    #~
-    pointSeqsToAdd = []
-    colorsToAdd = []
-    for i in range(0, len(allPoints), strokeLength):
-        color = None
-        if not images:
-            try:
-                color = allColors[i]
-            except:
-                color = lb.getColorExplorer(obj, i)
-        else:
-            try:
-                color = lb.getColorExplorer(obj, i, images)
-            except:
-                color = lb.getColorExplorer(obj, i)
-        colorsToAdd.append(color)
-        #~
-        pointSeq = []
-        for j in range(0, strokeLength):
-            #point = allPoints[i]
-            try:
-                point = allPoints[i+j]
-                if (len(pointSeq) == 0 or lb.getDistance(pointSeq[len(pointSeq)-1], point) < strokeGaps):
-                    pointSeq.append(point)
-            except:
-                break
-        if (len(pointSeq) > 0): 
-            pointSeqsToAdd.append(pointSeq)
-    for i, pointSeq in enumerate(pointSeqsToAdd):
-        color = colorsToAdd[i]
-        #createColor(color)
-        if (limitPalette == 0):
-            lb.createColor(color)
-        else:
-            lb.createAndMatchColorPalette(color, limitPalette, 5) # num places
-        #stroke = frame.strokes.new(getActiveColor().name)
-        #stroke.draw_mode = "3DSPACE"
-        stroke = frame.strokes.new()
-        stroke.display_mode = '3DSPACE'
-        stroke.line_width = 10 # adjusted from 100 for 2.93
-        stroke.material_index = gp.active_material_index
-
-        stroke.points.add(len(pointSeq))
-
-        if (random.random() < shuffleOdds):
-            random.shuffle(pointSeq)
-
-        for j, point in enumerate(pointSeq):    
-            x = point[0] + (random.random() * 2.0 * spreadPoints) - spreadPoints
-            y = point[2] + (random.random() * 2.0 * spreadPoints) - spreadPoints
-            z = point[1] + (random.random() * 2.0 * spreadPoints) - spreadPoints
-            pressure = 1.0
-            strength = 1.0
-            lb.createPoint(stroke, j, (x, y, z), pressure, strength)
-'''
 
 def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     if not obj:
