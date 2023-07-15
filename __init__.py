@@ -18,6 +18,7 @@ import latk_blender as lb
 import random
 
 import torch
+import skeletor as sk
 
 
 class latkml003Preferences(bpy.types.AddonPreferences):
@@ -57,7 +58,26 @@ class latkml003Properties(bpy.types.PropertyGroup):
     """Properties for latkml003"""
     bl_idname = "GREASE_PENCIL_PT_latkml003Properties"
 
-    latkml003_Model: EnumProperty(
+    Operation1: EnumProperty(
+        name="Operation 1",
+        items=(
+            ("NONE", "None", "...", 0),
+            ("VOXEL_ML", "Voxelize", "...", 1)
+        ),
+        default="NONE"
+    )
+
+    Operation2: EnumProperty(
+        name="Operation 2",
+        items=(
+            ("STROKE_GEN", "Connect Strokes", "...", 0),
+            ("CONTOUR_GEN", "Connect Contours", "...", 1),
+            ("SKEL_GEN", "Connect Skeleton", "...", 2)
+        ),
+        default="STROKE_GEN"
+    )
+
+    Model: EnumProperty(
         name="Model",
         items=(
             ("256V001", "256x256 v001", "...", 0),
@@ -66,60 +86,23 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default="256V001"
     )
 
-    latkml003_thickness: FloatProperty(
+    thickness: FloatProperty(
         name="Thickness %",
         description="...",
         default=10.0
     )
 
     strokegen_radius: FloatProperty(
-        name="Radius",
+        name="StrokeGen Radius",
         description="Base search distance for points",
         default=2
     )
 
     strokegen_minPointsCount: IntProperty(
-        name="Min Points Count",
+        name="StrokeGen Min Points",
         description="Minimum number of points to make a stroke",
         default=5
     )
-
-
-class latkml003_Button_StrokeGen(bpy.types.Operator):
-    """Generate GP strokes from a mesh"""
-    bl_idname = "latkml003_button.strokegen"
-    bl_label = "StrokeGen"
-    bl_options = {'UNDO'}
-    
-    def execute(self, context):
-        latkml003 = context.scene.latkml003_settings
-        strokeGen(radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount)
-        return {'FINISHED'}
-
-
-class latkml003_Button_ContourGen(bpy.types.Operator):
-    """Generate GP strokes from a mesh"""
-    bl_idname = "latkml003_button.contourgen"
-    bl_label = "ContourGen"
-    bl_options = {'UNDO'}
-    
-    def execute(self, context):
-        latkml003 = context.scene.latkml003_settings
-        contourGen()
-        return {'FINISHED'}
-
-
-class latkml003_Button_SkelGen(bpy.types.Operator):
-    """Generate GP strokes from a mesh"""
-    bl_idname = "latkml003_button.skelgen"
-    bl_label = "SkelGen"
-    bl_options = {'UNDO'}
-    
-    def execute(self, context):
-        latkml003 = context.scene.latkml003_settings
-        skelGen()
-        return {'FINISHED'}
-
 
 class latkml003_Button_AllFrames(bpy.types.Operator):
     """Operate on all frames"""
@@ -141,7 +124,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             la.layers[0].frames.append(laFrame)
 
         lb.fromLatkToGp(la, resizeTimeline=False)
-        lb.setThickness(latkml003.latkml003_thickness)
+        lb.setThickness(latkml003.thickness)
         return {'FINISHED'}
 
 
@@ -153,15 +136,28 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
     
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
-        net1, net2 = loadModel()
-
-        la = latk.Latk()
-        la.layers.append(latk.LatkLayer())
-        laFrame = doInference(net1, net2)
-        la.layers[0].frames.append(laFrame)
         
-        lb.fromLatkToGp(la, resizeTimeline=False)
-        lb.setThickness(latkml003.latkml003_thickness)
+        op1 = latkml003.Operation1.lower() 
+        op2 = latkml003.Operation2.lower() 
+
+        if (op1 == "voxel_ml"):
+            net1, net2 = loadModel()
+
+            la = latk.Latk()
+            la.layers.append(latk.LatkLayer())
+            laFrame = doInference(net1, net2)
+            la.layers[0].frames.append(laFrame)
+        
+            lb.fromLatkToGp(la, resizeTimeline=False)
+            lb.setThickness(latkml003.thickness)
+            # automatically do connections in inference step
+        else:
+            if (op2 == "skel_gen"):
+                pass
+            elif (op2 == "contour_gen"):
+                pass
+            else:
+                strokeGen(radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         return {'FINISHED'}
 
 
@@ -186,21 +182,24 @@ class latkml003Properties_Panel(bpy.types.Panel):
         row.operator("latkml003_button.allframes")
 
         row = layout.row()
-        row.prop(latkml003, "latkml003_Model")
+        row.prop(latkml003, "Operation1")
 
         row = layout.row()
-        row.prop(latkml003, "latkml003_thickness")
+        row.prop(latkml003, "Model")
 
         row = layout.row()
-        row.operator("latkml003_button.strokegen")
+        row.prop(latkml003, "Operation2")
+
+        row = layout.row()
+        row.prop(latkml003, "thickness")
+
+        row = layout.row()
         row.prop(latkml003, "strokegen_radius")
         row.prop(latkml003, "strokegen_minPointsCount")
 
         row = layout.row()
-        row.operator("latkml003_button.contourgen")
 
         row = layout.row()
-        row.operator("latkml003_button.skelgen")
 
 classes = (
     OBJECT_OT_latkml003_prefs,
@@ -208,10 +207,7 @@ classes = (
     latkml003Properties,
     latkml003Properties_Panel,
     latkml003_Button_AllFrames,
-    latkml003_Button_SingleFrame,
-    latkml003_Button_StrokeGen,
-    latkml003_Button_ContourGen,
-    latkml003_Button_SkelGen
+    latkml003_Button_SingleFrame
 )
 
 def register():
@@ -232,7 +228,7 @@ def getModelPath(url):
 
 def loadModel():
     latkml003 = bpy.context.scene.latkml003_settings
-    returns = modelSelector(latkml003.latkml003_Model)
+    returns = modelSelector(latkml003.Model)
     return returns
 
 def modelSelector(modelName):
@@ -349,7 +345,58 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
             lb.createPoint(stroke, j, (x, y, z), pressure, strength)
 
 def contourGen():
-    pass
+    la = latk.Latk(init=True)
+
+    mesh = loadMesh(inputPath)
+
+    bounds = getBounds(mesh)
+
+    # generate a set of contour lines at regular intervals
+    interval = bounds * 0.01 #0.03  #0.1 # the spacing between contours
+    print("Interval: " + str(interval))
+
+    # x, z
+    slice_range = np.arange(mesh.bounds[0][2], mesh.bounds[1][2], interval)
+    # y
+    #slice_range = np.arange(mesh.bounds[0][1], mesh.bounds[0][2], interval)
+
+    # loop over the z values and generate a contour at each level
+    for slice_pos in slice_range:
+        # x
+        #slice_mesh = mesh.section(plane_origin=[slice_pos, 0, 0], plane_normal=[1, 0, 0])
+        # y
+        #slice_mesh = mesh.section(plane_origin=[0, slice_pos, 0], plane_normal=[0, 1, 0])
+        # z
+        slice_mesh = mesh.section(plane_origin=[0, 0, slice_pos], plane_normal=[0, 0, 1])
+        
+        if slice_mesh != None:
+            for entity in slice_mesh.entities:
+                la_s = latk.LatkStroke()
+
+                for index in entity.points:
+                    vert = slice_mesh.vertices[index]
+                    vert = [vert[0], vert[2], vert[1]]
+                    la_p = latk.LatkPoint(co=vert)
+                    la_s.points.append(la_p)
+
+                la.layers[0].frames[0].strokes.append(la_s)
+
 
 def skelGen():
-    pass
+    la = latk.Latk(init=True)
+
+    mesh = loadMesh(inputPath)
+
+    fixed = sk.pre.fix_mesh(mesh, remove_disconnected=5, inplace=False)
+    skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
+
+    for entity in skel.skeleton.entities:
+        la_s = latk.LatkStroke()
+
+        for index in entity.points:
+            vert = skel.vertices[index]
+            vert = [vert[0], vert[2], vert[1]]
+            la_p = latk.LatkPoint(co=vert)
+            la_s.points.append(la_p)
+
+        la.layers[0].frames[0].strokes.append(la_s)
