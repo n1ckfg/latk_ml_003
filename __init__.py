@@ -19,6 +19,7 @@ import random
 
 import torch
 import skeletor as sk
+from scipy.spatial.distance import cdist
 
 
 class latkml003Preferences(bpy.types.AddonPreferences):
@@ -283,6 +284,24 @@ class Vox2Vox_PyTorch():
             
             return result
 
+def group_points_into_strokes(points, radius, minPointsCount):
+    strokeGroups = []
+    unassigned_points = set(range(len(points)))
+
+    while len(unassigned_points) > 0:
+        strokeGroup = [next(iter(unassigned_points))]
+        unassigned_points.remove(strokeGroup[0])
+
+        for i in range(len(points)):
+            if i in unassigned_points and cdist([points[i]], [points[strokeGroup[-1]]])[0][0] < radius:
+                strokeGroup.append(i)
+                unassigned_points.remove(i)
+
+        if (len(strokeGroup) >= minPointsCount):
+            strokeGroups.append(strokeGroup)
+
+        print("Found " + str(len(strokeGroups)) + " strokeGroups, " + str(len(unassigned_points)) + " points remaining.")
+    return strokeGroups
 
 def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     if not obj:
@@ -306,7 +325,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     #~
     allPoints, allColors = lb.getVerts(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
     #~
-    strokeGroups = lb.group_points_into_strokes(allPoints, radius, minPointsCount)
+    strokeGroups = group_points_into_strokes(allPoints, radius, minPointsCount)
 
     for i, strokeGroup in enumerate(strokeGroups):
         colorIndex = strokeGroup[0]
