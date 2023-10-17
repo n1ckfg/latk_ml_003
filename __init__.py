@@ -14,6 +14,7 @@ from bpy.types import Operator, AddonPreferences
 from bpy.props import (BoolProperty, FloatProperty, StringProperty, IntProperty, PointerProperty, EnumProperty)
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 import addon_utils
+import mathutils
 
 import os
 import sys
@@ -24,6 +25,7 @@ import random
 
 import torch
 import skeletor as sk
+import trimesh
 from scipy.spatial.distance import cdist
 
 def findAddonPath(name=None):
@@ -170,7 +172,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
             # automatically do connections in inference step
         else:
             if (op2 == "skel_gen"):
-                pass
+                skelGen()
             elif (op2 == "contour_gen"):
                 contourGen()
             else:
@@ -325,7 +327,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     if not obj:
         obj = lb.ss()
     mesh = obj.data
-    #mat = obj.matrix_world
+    mat = obj.matrix_world
     #~
     gp = lb.getActiveGp()
     layer = lb.getActiveLayer()
@@ -379,29 +381,32 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
 
         for j, index in enumerate(strokeGroup):    
             point = allPoints[index]
-            x = point[0]
-            y = point[2]
-            z = point[1]
+            point = (point[0], point[2], point[1]) #mat @ mathutils.Vector((point[0], point[2], point[1]))
             pressure = 1.0
             strength = 1.0
-            lb.createPoint(stroke, j, (x, y, z), pressure, strength)
+            lb.createPoint(stroke, j, point, pressure, strength)
 
 def contourGen(obj=None):
     la = latk.Latk(init=True)
 
     if not obj:
         obj = lb.ss()
-    mesh = obj.data
-    #mat = obj.matrix_world
+    #mesh = obj.data
+    mat = obj.matrix_local #matrix_world
 
-    avgSize = lb.getAvgSize(obj)
+    verts = lb.getVertices(obj)
+    faces = lb.getFaces(obj)
+
+    mesh = trimesh.Trimesh(verts, faces)
+
+    bounds = lb.getDistance(mesh.bounds[0], mesh.bounds[1])
 
     # generate a set of contour lines at regular intervals
-    interval = avgSize * 0.01 #0.03  #0.1 # the spacing between contours
+    interval = bounds * 0.01 #0.03  #0.1 # the spacing between contours
     print("Interval: " + str(interval))
 
     # x, z
-    slice_range = np.arange(obj.bound_box[0][2], obj.bound_box[1][2], interval) #np.arange(mesh.bounds[0][2], mesh.bounds[1][2], interval)
+    slice_range = np.arange(mesh.bounds[0][2], mesh.bounds[1][2], interval)
     # y
     #slice_range = np.arange(mesh.bounds[0][1], mesh.bounds[0][2], interval)
 
@@ -419,20 +424,30 @@ def contourGen(obj=None):
                 la_s = latk.LatkStroke()
 
                 for index in entity.points:
-                    vert = slice_mesh.vertices[index]
-                    vert = [vert[0], vert[2], vert[1]]
+                    vert = slice_mesh.vertices[index] 
+                    vert = mat @ mathutils.Vector(vert)
+                    #vert = [vert[0], vert[1], vert[2]]
                     la_p = latk.LatkPoint(co=vert)
                     la_s.points.append(la_p)
 
                 la.layers[0].frames[0].strokes.append(la_s)
 
-    lb.fromLatkToGp(la)
+    gp = lb.fromLatkToGp(la)
+    #gp.location = obj.location
 
 
-def skelGen():
+def skelGen(obj=None):
     la = latk.Latk(init=True)
 
-    mesh = loadMesh(inputPath)
+    if not obj:
+        obj = lb.ss()
+    #mesh = obj.data
+    mat = obj.matrix_local #matrix_world
+
+    verts = lb.getVertices(obj)
+    faces = lb.getFaces(obj)
+
+    mesh = trimesh.Trimesh(verts, faces)
 
     fixed = sk.pre.fix_mesh(mesh, remove_disconnected=5, inplace=False)
     skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
@@ -447,3 +462,5 @@ def skelGen():
             la_s.points.append(la_p)
 
         la.layers[0].frames[0].strokes.append(la_s)
+
+    gp = lb.fromLatkToGp(la)
