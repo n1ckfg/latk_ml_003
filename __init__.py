@@ -8,10 +8,15 @@ bl_info = {
 }
 
 import bpy
+import gpu
+import bgl
 from bpy.types import Operator, AddonPreferences
 from bpy.props import (BoolProperty, FloatProperty, StringProperty, IntProperty, PointerProperty, EnumProperty)
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
+import addon_utils
 
+import os
+import sys
 import numpy as np
 import latk
 import latk_blender as lb
@@ -20,6 +25,17 @@ import random
 import torch
 import skeletor as sk
 from scipy.spatial.distance import cdist
+
+def findAddonPath(name=None):
+    if not name:
+        name = __name__
+    for mod in addon_utils.modules():
+        if mod.bl_info["name"] == name:
+            url = mod.__file__
+            return os.path.dirname(url)
+    return None
+
+sys.path.append(os.path.join(findAddonPath(), "vox2vox"))
 
 
 class latkml003Preferences(bpy.types.AddonPreferences):
@@ -156,7 +172,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
             if (op2 == "skel_gen"):
                 pass
             elif (op2 == "contour_gen"):
-                pass
+                contourGen()
             else:
                 strokeGen(radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         return {'FINISHED'}
@@ -251,12 +267,14 @@ def getPyTorchDevice():
     device = None
     if torch.cuda.is_available():
         device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
     else:
         device = torch.device("cpu")
         return device
 
-def createPyTorchNetwork(modelPath, net_G, input_nc=3, output_nc=1, n_blocks=3):
-    device = getPyTorchDevice()
+def createPyTorchNetwork(modelPath, net_G, device, input_nc=3, output_nc=1, n_blocks=3):
+    #device = getPyTorchDevice()
     modelPath = getModelPath(modelPath)
     net_G.to(device)
     net_G.load_state_dict(torch.load(modelPath, map_location=device))
@@ -307,7 +325,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     if not obj:
         obj = lb.ss()
     mesh = obj.data
-    mat = obj.matrix_world
+    #mat = obj.matrix_world
     #~
     gp = lb.getActiveGp()
     layer = lb.getActiveLayer()
@@ -330,11 +348,16 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     for i, strokeGroup in enumerate(strokeGroups):
         colorIndex = strokeGroup[0]
 
+        color = (1, 1, 1)
+
         if not images:
             try:
                 color = allColors[colorIndex]
             except:
-                color = lb.getColorExplorer(obj, colorIndex)
+                try:
+                    color = lb.getColorExplorer(obj, colorIndex)
+                except:
+                    color = (1, 1, 1)
         else:
             try:
                 color = lb.getColorExplorer(obj, colorIndex, images)
@@ -363,19 +386,22 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
             strength = 1.0
             lb.createPoint(stroke, j, (x, y, z), pressure, strength)
 
-def contourGen():
+def contourGen(obj=None):
     la = latk.Latk(init=True)
 
-    mesh = loadMesh(inputPath)
+    if not obj:
+        obj = lb.ss()
+    mesh = obj.data
+    #mat = obj.matrix_world
 
-    bounds = getBounds(mesh)
+    avgSize = lb.getAvgSize(obj)
 
     # generate a set of contour lines at regular intervals
-    interval = bounds * 0.01 #0.03  #0.1 # the spacing between contours
+    interval = avgSize * 0.01 #0.03  #0.1 # the spacing between contours
     print("Interval: " + str(interval))
 
     # x, z
-    slice_range = np.arange(mesh.bounds[0][2], mesh.bounds[1][2], interval)
+    slice_range = np.arange(obj.bound_box[0][2], obj.bound_box[1][2], interval) #np.arange(mesh.bounds[0][2], mesh.bounds[1][2], interval)
     # y
     #slice_range = np.arange(mesh.bounds[0][1], mesh.bounds[0][2], interval)
 
@@ -399,6 +425,8 @@ def contourGen():
                     la_s.points.append(la_p)
 
                 la.layers[0].frames[0].strokes.append(la_s)
+
+    lb.fromLatkToGp(la)
 
 
 def skelGen():
