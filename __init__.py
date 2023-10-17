@@ -324,10 +324,14 @@ def group_points_into_strokes(points, radius, minPointsCount):
     return strokeGroups
 
 def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
+    origCursorLocation = bpy.context.scene.cursor.location
+    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+
     if not obj:
         obj = lb.ss()
     mesh = obj.data
-    mat = obj.matrix_world
+    #matrixWorld = obj.matrix_world
+    #matrixWorldInverted = matrixWorld.inverted()
     #~
     gp = lb.getActiveGp()
     layer = lb.getActiveLayer()
@@ -381,18 +385,25 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
 
         for j, index in enumerate(strokeGroup):    
             point = allPoints[index]
-            point = (point[0], point[2], point[1]) #mat @ mathutils.Vector((point[0], point[2], point[1]))
+            #point = matrixWorldInverted @ mathutils.Vector((point[0], point[2], point[1]))
+            point = (point[0], point[2], point[1])
             pressure = 1.0
             strength = 1.0
             lb.createPoint(stroke, j, point, pressure, strength)
 
+    bpy.context.scene.cursor.location = origCursorLocation
+
 def contourGen(obj=None):
+    origCursorLocation = bpy.context.scene.cursor.location
+    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+
     la = latk.Latk(init=True)
 
     if not obj:
         obj = lb.ss()
     #mesh = obj.data
-    mat = obj.matrix_local #matrix_world
+    matrixWorld = obj.matrix_world
+    #matrixWorldInverted = matrixWorld.inverted()
 
     verts = lb.getVertices(obj)
     faces = lb.getFaces(obj)
@@ -425,24 +436,27 @@ def contourGen(obj=None):
 
                 for index in entity.points:
                     vert = slice_mesh.vertices[index] 
-                    vert = mat @ mathutils.Vector(vert)
+                    vert = matrixWorld @ mathutils.Vector(vert)
                     #vert = [vert[0], vert[1], vert[2]]
                     la_p = latk.LatkPoint(co=vert)
                     la_s.points.append(la_p)
 
                 la.layers[0].frames[0].strokes.append(la_s)
 
-    gp = lb.fromLatkToGp(la)
-    #gp.location = obj.location
+    lb.fromLatkToGp(la)
 
+    bpy.context.scene.cursor.location = origCursorLocation
 
 def skelGen(obj=None):
+    origCursorLocation = bpy.context.scene.cursor.location
+    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+
     la = latk.Latk(init=True)
 
     if not obj:
         obj = lb.ss()
-    #mesh = obj.data
-    mat = obj.matrix_local #matrix_world
+    matrixWorld = obj.matrix_world
+    #matrixWorldInverted = matrixWorld.inverted()
 
     verts = lb.getVertices(obj)
     faces = lb.getFaces(obj)
@@ -457,10 +471,12 @@ def skelGen(obj=None):
 
         for index in entity.points:
             vert = skel.vertices[index]
-            vert = [vert[0], vert[2], vert[1]]
+            vert = matrixWorld @ mathutils.Vector((vert[0], vert[1], vert[2]))
             la_p = latk.LatkPoint(co=vert)
             la_s.points.append(la_p)
 
         la.layers[0].frames[0].strokes.append(la_s)
 
-    gp = lb.fromLatkToGp(la)
+    lb.fromLatkToGp(la)
+
+    bpy.context.scene.cursor.location = origCursorLocation
