@@ -27,6 +27,7 @@ import torch
 import skeletor as sk
 import trimesh
 from scipy.spatial.distance import cdist
+from scipy.spatial import Delaunay
 
 def findAddonPath(name=None):
     if not name:
@@ -347,7 +348,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     except:
         pass
     #~
-    allPoints, allColors = lb.getVerts(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
+    allPoints, allColors = lb.getVertsAndColors(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
     #~
     strokeGroups = group_points_into_strokes(allPoints, radius, minPointsCount)
 
@@ -386,7 +387,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
         for j, index in enumerate(strokeGroup):    
             point = allPoints[index]
             #point = matrixWorldInverted @ mathutils.Vector((point[0], point[2], point[1]))
-            point = (point[0], point[2], point[1])
+            #point = (point[0], point[1], point[2])
             pressure = 1.0
             strength = 1.0
             lb.createPoint(stroke, j, point, pressure, strength)
@@ -407,8 +408,13 @@ def contourGen(obj=None):
 
     verts = lb.getVertices(obj)
     faces = lb.getFaces(obj)
+    mesh = None
 
-    mesh = trimesh.Trimesh(verts, faces)
+    if len(faces) < 1:
+        tri = Delaunay(verts)
+        mesh = trimesh.Trimesh(tri.points, tri.simplices)
+    else:
+        mesh = trimesh.Trimesh(verts, faces)
 
     bounds = lb.getDistance(mesh.bounds[0], mesh.bounds[1])
 
