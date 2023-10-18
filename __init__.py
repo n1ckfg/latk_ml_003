@@ -38,7 +38,7 @@ def findAddonPath(name=None):
             return os.path.dirname(url)
     return None
 
-sys.path.append(os.path.join(findAddonPath(), "vox2vox"))
+#sys.path.append(os.path.join(findAddonPath(), "vox2vox"))
 
 
 class latkml003Preferences(bpy.types.AddonPreferences):
