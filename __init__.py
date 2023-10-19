@@ -28,6 +28,10 @@ import skeletor as sk
 import trimesh
 from scipy.spatial.distance import cdist
 from scipy.spatial import Delaunay
+import scipy.ndimage as nd
+from pyntcloud import PyntCloud 
+import pandas as pd
+import pdb
 
 def findAddonPath(name=None):
     if not name:
@@ -38,7 +42,8 @@ def findAddonPath(name=None):
             return os.path.dirname(url)
     return None
 
-#sys.path.append(os.path.join(findAddonPath(), "vox2vox"))
+sys.path.append(os.path.join(findAddonPath(), "."))
+import binvox_rw
 
 
 class latkml003Preferences(bpy.types.AddonPreferences):
@@ -242,6 +247,91 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
+def scale_numpy_array(arr, min_v, max_v):
+    new_range = (min_v, max_v)
+    max_range = max(new_range)
+    min_range = min(new_range)
+
+    scaled_unit = (max_range - min_range) / (np.max(arr) - np.min(arr))
+    return arr * scaled_unit - np.min(arr) * scaled_unit + min_range
+
+def resizeVoxels(voxel, shape):
+    ratio = shape[0] / voxel.shape[0]
+    voxel = nd.zoom(voxel,
+            ratio,
+            order=1, 
+            mode='nearest')
+    voxel[np.nonzero(voxel)] = 1.0
+    return voxel
+
+def vertsToBinvox(obj=None, ext="_pre.ply", dims=128, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
+    if not obj:
+        obj = lb.ss()
+
+    shape = (dims, dims, dims)
+    data = np.zeros(shape, dtype=bool)
+    translate = (0, 0, 0)
+    scale = 1
+    axis_order = axis
+    bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
+
+    verts = lb.getVertices(obj)
+
+    if (seqMin != None and seqMax !=None):
+        for vert in verts:
+            vert[0] = remap(vert[0], seqMin, seqMax, 0, dims - 1)
+            vert[1] = remap(vert[1], seqMin, seqMax, 0, dims - 1)
+            vert[2] = remap(vert[2], seqMin, seqMax, 0, dims - 1)
+    else:
+        verts = scale_numpy_array(verts, 0, dims - 1)
+
+    for vert in verts:
+        x = dims - 1 - int(vert[0])
+        y = int(vert[1])
+        z = int(vert[2])
+        data[x][y][z] = True
+
+    if (doFilter == True):
+        for i in range(0, 1): # 1
+            nd.binary_dilation(bv.data.copy(), output=bv.data)
+
+        for i in range(0, 3): # 3
+            nd.sobel(bv.data.copy(), output=bv.data)
+
+        nd.median_filter(bv.data.copy(), size=4, output=bv.data) # 4
+
+        for i in range(0, 2): # 2
+            nd.laplace(bv.data.copy(), output=bv.data)
+
+        for i in range(0, 0): # 0
+            nd.binary_erosion(bv.data.copy(), output=bv.data)
+
+    return bv
+
+def binvoxToVerts(voxel, dims=128, axis='xyz'):
+    verts = []
+    for x in range(0, dims):
+        for y in range(0, dims):
+            for z in range(0, dims):
+                if (voxel.data[x][y][z] == True):
+                    verts.append([dims-1-z, y, x])
+    return verts
+
+def binvoxToH5(voxel, dims=128):
+    shape=(dims, dims, dims)   
+    voxel_data = voxel.data.astype(float) #voxel.data.astype(np.float)
+    if shape is not None and voxel_data.shape != shape:
+        voxel_data = resize(voxel.data.astype(np.float64), shape)
+    return voxel_data
+
+def h5ToBinvox(data, dims=128):
+    data = np.rint(data).astype(np.uint8)
+    shape = (dims, dims, dims) #data.shape
+    translate = [0, 0, 0]
+    scale = 1.0
+    axis_order = 'xzy'
+    return binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
 def getModelPath(url):
     return os.path.join(findAddonPath(), url)
@@ -491,3 +581,71 @@ def skelGen(obj=None):
     lb.setThickness(latkml003.thickness)
 
     bpy.context.scene.cursor.location = origCursorLocation
+
+def differenceEigenvalues(obj=None):
+    # MIT License Copyright (c) 2015 Dena Bazazian Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    if not obj:
+        obj = lb.ss()
+
+    verts = lb.getVertices(obj)
+    pdVerts = pd.DataFrame(verts, columns=["x", "y", "z"])
+    pcd1 = PyntCloud(pdVerts)
+        
+    # define hyperparameters
+    k_n = 40 # 50
+    thresh = 0.08 # 0.03
+
+    pcd_np = np.zeros((len(pcd1.points),6))
+
+    # find neighbors
+    kdtree_id = pcd1.add_structure("kdtree")
+    k_neighbors = pcd1.get_neighbors(k=k_n, kdtree=kdtree_id) 
+
+    # calculate eigenvalues
+    ev = pcd1.add_scalar_field("eigen_values", k_neighbors=k_neighbors)
+
+    x = pcd1.points['x'].values 
+    y = pcd1.points['y'].values 
+    z = pcd1.points['z'].values 
+
+    e1 = pcd1.points['e3('+str(k_n+1)+')'].values
+    e2 = pcd1.points['e2('+str(k_n+1)+')'].values
+    e3 = pcd1.points['e1('+str(k_n+1)+')'].values
+
+    sum_eg = np.add(np.add(e1,e2),e3)
+    sigma = np.divide(e1,sum_eg)
+    sigma_value = sigma
+
+    # visualize the edges
+    sigma = sigma>thresh
+
+    # Save the edges and point cloud
+    thresh_min = sigma_value < thresh
+    sigma_value[thresh_min] = 0
+    thresh_max = sigma_value > thresh
+    sigma_value[thresh_max] = 255
+
+    pcd_np[:,0] = x
+    pcd_np[:,1] = y
+    pcd_np[:,2] = z
+    pcd_np[:,3] = sigma_value
+
+    edge_np = np.delete(pcd_np, np.where(pcd_np[:,3] == 0), axis=0) 
+    print(len(edge_np))
+
+    clmns = ['x','y','z','red','green','blue']
+    #pcd_pd = pd.DataFrame(data=pcd_np,columns=clmns)
+    #pcd_pd['red'] = sigma_value.astype(np.uint8)
+
+    #pcd_points = PyntCloud(pcd_pd)
+    #edge_points = PyntCloud(pd.DataFrame(data=edge_np,columns=clmns))
+
+    #PyntCloud.to_file(edge_points, outputPath) # Save just the edge points
+    newVerts = []
+    #for i in range(0, len(edge_points.points)):
+    #    newVerts.append((edge_points.points["x"][i], edge_points.points["y"][i], edge_points.points["z"][i]))
+    for edge in edge_np:
+        newVerts.append((edge[0], edge[1], edge[2]))
+
+    return newVerts
+
