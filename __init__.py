@@ -45,6 +45,8 @@ def findAddonPath(name=None):
 sys.path.append(os.path.join(findAddonPath(), "."))
 import binvox_rw
 
+sys.path.append(os.path.join(findAddonPath(), "vox2vox"))
+from models import *
 
 class latkml003Preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
