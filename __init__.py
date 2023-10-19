@@ -458,7 +458,7 @@ def contourGen(obj=None):
 
 def skelGen(obj=None):
     latkml003 = bpy.context.scene.latkml003_settings
-        origCursorLocation = bpy.context.scene.cursor.location
+    origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
     la = latk.Latk(init=True)
