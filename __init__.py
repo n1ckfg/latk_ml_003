@@ -42,11 +42,8 @@ def findAddonPath(name=None):
             return os.path.dirname(url)
     return None
 
-sys.path.append(os.path.join(findAddonPath(), "."))
-import binvox_rw
-
-sys.path.append(os.path.join(findAddonPath(), "vox2vox"))
-from models import *
+from . import binvox_rw
+from .vox2vox.models import *
 
 class latkml003Preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
@@ -358,6 +355,30 @@ def modelSelector(modelName):
 def doInference(net):
     latkml003 = bpy.context.scene.latkml003_settings
 
+    imgs = next(dataiter) #dataiter.next()
+
+    """Saves a generated sample from the validation set"""
+    real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
+    #real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
+    fake_B = generator(real_A)
+
+    # convert to numpy arrays
+    real_A = real_A.cpu().detach().numpy()
+    #real_B = real_B.cpu().detach().numpy()
+    fake_B = fake_B.cpu().detach().numpy()
+
+    image_folder = "output" #/%s_%s_" % (opt.dataset_name, index)
+
+    #write_binvox(real_A, image_folder + 'real_A.binvox')
+
+    data = np.rint(fake_B).astype(np.uint8)
+    dims = (opt.img_width, opt.img_height, opt.img_depth) #data.shape
+    translate = [0, 0, 0]
+    scale = 1.0
+    axis_order = 'xzy'
+    voxels = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
+
+'''
 def getPyTorchDevice():
     device = None
     if torch.cuda.is_available():
@@ -375,7 +396,7 @@ def createPyTorchNetwork(modelPath, net_G, device, input_nc=3, output_nc=1, n_bl
     net_G.load_state_dict(torch.load(modelPath, map_location=device))
     net_G.eval()
     return net_G
-
+'''
 
 class Vox2Vox_PyTorch():
     def __init__(self, modelPath):
