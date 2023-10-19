@@ -325,6 +325,7 @@ def group_points_into_strokes(points, radius, minPointsCount):
     return strokeGroups
 
 def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
+    latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
@@ -379,7 +380,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
         
         stroke = frame.strokes.new()
         stroke.display_mode = '3DSPACE'
-        stroke.line_width = 10 # adjusted from 100 for 2.93
+        stroke.line_width = int(latkml003.thickness) #10 # adjusted from 100 for 2.93
         stroke.material_index = gp.active_material_index
 
         stroke.points.add(len(strokeGroup))
@@ -395,6 +396,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     bpy.context.scene.cursor.location = origCursorLocation
 
 def contourGen(obj=None):
+    latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
@@ -449,12 +451,14 @@ def contourGen(obj=None):
 
                 la.layers[0].frames[0].strokes.append(la_s)
 
-    lb.fromLatkToGp(la)
+    lb.fromLatkToGp(la, resizeTimeline=False)
+    lb.setThickness(latkml003.thickness)
 
     bpy.context.scene.cursor.location = origCursorLocation
 
 def skelGen(obj=None):
-    origCursorLocation = bpy.context.scene.cursor.location
+    latkml003 = bpy.context.scene.latkml003_settings
+        origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
     la = latk.Latk(init=True)
@@ -483,6 +487,7 @@ def skelGen(obj=None):
 
         la.layers[0].frames[0].strokes.append(la_s)
 
-    lb.fromLatkToGp(la)
+    lb.fromLatkToGp(la, resizeTimeline=False)
+    lb.setThickness(latkml003.thickness)
 
     bpy.context.scene.cursor.location = origCursorLocation
