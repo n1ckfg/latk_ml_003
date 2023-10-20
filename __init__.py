@@ -142,6 +142,11 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
 
         start, end = lb.getStartEnd()
 
+        obj = lb.ss()
+        verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        faces = lb.getFaces(obj)
+        matrix_world = obj.matrix_world
+
         if (op1 == "voxel_ml"):
             net1, net2 = loadModel()
 
@@ -156,15 +161,14 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             lb.fromLatkToGp(la, resizeTimeline=False)
             lb.setThickness(latkml003.thickness)
         else:
-            target = lb.ss()
             for i in range(start, end):
                 lb.goToFrame(i)
                 if (op2 == "skel_gen"):
-                    skelGen(target)
+                    skelGen(verts, faces, matrix_world)
                 elif (op2 == "contour_gen"):
-                    contourGen(target)
+                    contourGen(verts, faces, matrix_world)
                 else:
-                    strokeGen(target, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+                    strokeGen(verts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
 
         return {'FINISHED'}
 
@@ -181,12 +185,17 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         op1 = latkml003.Operation1.lower() 
         op2 = latkml003.Operation2.lower() 
 
+        obj = lb.ss()
+        verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        faces = lb.getFaces(obj)
+        matrix_world = obj.matrix_world
+
         if (op1 == "voxel_ml"):
-            net1, net2 = loadModel()
+            net1 = loadModel()
 
             la = latk.Latk()
             la.layers.append(latk.LatkLayer())
-            laFrame = doInference(net1, net2)
+            laFrame = doInference(net1)
             la.layers[0].frames.append(laFrame)
         
             lb.fromLatkToGp(la, resizeTimeline=False)
@@ -194,11 +203,11 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
             # automatically do connections in inference step
         else:
             if (op2 == "skel_gen"):
-                skelGen()
+                skelGen(verts, faces, matrix_world)
             elif (op2 == "contour_gen"):
-                contourGen()
+                contourGen(verts, faces, matrix_world)
             else:
-                strokeGen(radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+                strokeGen(verts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         return {'FINISHED'}
 
 
@@ -454,17 +463,11 @@ def group_points_into_strokes(points, radius, minPointsCount):
         print("Found " + str(len(strokeGroups)) + " strokeGroups, " + str(len(unassigned_points)) + " points remaining.")
     return strokeGroups
 
-def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
+def strokeGen(verts, colors, matrix_world, radius=2, minPointsCount=5, limitPalette=32):
     latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
-    if not obj:
-        obj = lb.ss()
-    mesh = obj.data
-    #matrixWorld = obj.matrix_world
-    #matrixWorldInverted = matrixWorld.inverted()
-    #~
     gp = lb.getActiveGp()
     layer = lb.getActiveLayer()
     if not layer:
@@ -472,36 +475,17 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
     frame = lb.getActiveFrame()
     if not frame or frame.frame_number != lb.currentFrame():
         frame = layer.frames.new(lb.currentFrame())
-    #~
-    images = None
-    try:
-        images = lb.getUvImages()
-    except:
-        pass
-    #~
-    allPoints, allColors = lb.getVertsAndColors(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
-    #~
-    strokeGroups = group_points_into_strokes(allPoints, radius, minPointsCount)
+
+    strokeGroups = group_points_into_strokes(verts, radius, minPointsCount)
 
     for i, strokeGroup in enumerate(strokeGroups):
         colorIndex = strokeGroup[0]
+        color = None
 
-        color = (1, 1, 1)
-
-        if not images:
-            try:
-                color = allColors[colorIndex]
-            except:
-                try:
-                    color = lb.getColorExplorer(obj, colorIndex)
-                except:
-                    color = (1, 1, 1)
-        else:
-            try:
-                color = lb.getColorExplorer(obj, colorIndex, images)
-            except:
-                color = lb.getColorExplorer(obj, colorIndex)
-        color = (color[0], color[1], color[2])
+        if not colors:
+            color = (1, 1, 1)
+        else:    
+            color = colors[colorIndex]
 
         if (limitPalette == 0):
             lb.createColor(color)
@@ -516,7 +500,7 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
         stroke.points.add(len(strokeGroup))
 
         for j, index in enumerate(strokeGroup):    
-            point = allPoints[index]
+            point = matrix_world @ verts[index]
             #point = matrixWorldInverted @ mathutils.Vector((point[0], point[2], point[1]))
             #point = (point[0], point[1], point[2])
             pressure = 1.0
@@ -525,18 +509,12 @@ def strokeGen(obj=None, radius=2, minPointsCount=5, limitPalette=32):
 
     bpy.context.scene.cursor.location = origCursorLocation
 
-def contourGen(obj=None):
+def contourGen(verts, faces, matrix_world):
     latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
     la = latk.Latk(init=True)
-
-    if not obj:
-        obj = lb.ss()
-    #mesh = obj.data
-    matrixWorld = obj.matrix_world
-    #matrixWorldInverted = matrixWorld.inverted()
 
     gp = lb.getActiveGp()
     layer = lb.getActiveLayer()
@@ -546,8 +524,6 @@ def contourGen(obj=None):
     if not frame or frame.frame_number != lb.currentFrame():
         frame = layer.frames.new(lb.currentFrame())
 
-    verts = lb.getVertices(obj)
-    faces = lb.getFaces(obj)
     mesh = None
 
     if len(faces) < 1:
@@ -586,7 +562,7 @@ def contourGen(obj=None):
 
                 for i, index in enumerate(entity.points):
                     vert = slice_mesh.vertices[index] 
-                    vert = matrixWorld @ mathutils.Vector(vert)
+                    vert = matrix_world @ mathutils.Vector(vert)
                     #vert = [vert[0], vert[1], vert[2]]
                     lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
@@ -595,17 +571,12 @@ def contourGen(obj=None):
 
     bpy.context.scene.cursor.location = origCursorLocation
 
-def skelGen(obj=None):
+def skelGen(verts, faces, matrix_world):
     latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
     la = latk.Latk(init=True)
-
-    if not obj:
-        obj = lb.ss()
-    matrixWorld = obj.matrix_world
-    #matrixWorldInverted = matrixWorld.inverted()
 
     gp = lb.getActiveGp()
     layer = lb.getActiveLayer()
@@ -614,9 +585,6 @@ def skelGen(obj=None):
     frame = lb.getActiveFrame()
     if not frame or frame.frame_number != lb.currentFrame():
         frame = layer.frames.new(lb.currentFrame())
-
-    verts = lb.getVertices(obj)
-    faces = lb.getFaces(obj)
 
     mesh = trimesh.Trimesh(verts, faces)
 
@@ -632,7 +600,7 @@ def skelGen(obj=None):
 
         for i, index in enumerate(entity.points):
             vert = skel.vertices[index]
-            vert = matrixWorld @ mathutils.Vector((vert[0], vert[1], vert[2]))
+            vert = matrix_world @ mathutils.Vector((vert[0], vert[1], vert[2]))
             lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
     #lb.fromLatkToGp(la, resizeTimeline=False)
