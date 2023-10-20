@@ -191,12 +191,19 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
+        bounds = obj.dimensions
+        avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
+        dims = 256
 
         if (op1 == "voxel_ml"):
             net1 = loadModel()           
             newVerts = doInference(net1, obj)
-            
-            strokeGen(newVerts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            for vert in newVerts:
+                vert[0] = remap(vert[0], 0, dims - 1, 0, bounds.x)
+                vert[1] = remap(vert[1], 0, dims - 1, 0, bounds.y)
+                vert[2] = remap(vert[2], 0, dims - 1, 0, bounds.z)
+                #vert = matrix_world @ mathutils.Vector(vert)
+            strokeGen(newVerts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         else:
             if (op2 == "skel_gen"):
                 skelGen(verts, faces, matrix_world)
@@ -269,6 +276,9 @@ def unregister():
 if __name__ == "__main__":
     register()
 
+def remap(value, min1, max1, min2, max2):
+    return np.interp(value,[min1, max1],[min2, max2])
+
 def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
     max_range = max(new_range)
@@ -286,7 +296,8 @@ def resizeVoxels(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
-def vertsToBinvox(obj=None, ext="_pre.ply", dims=256, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
+#def vertsToBinvox(obj=None, ext="_pre.ply", dims=256, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
+def vertsToBinvox(obj=None, dims=256, doFilter=True, axis='xyz'):
     if not obj:
         obj = lb.ss()
 
@@ -296,16 +307,13 @@ def vertsToBinvox(obj=None, ext="_pre.ply", dims=256, doFilter=False, seqMin=Non
     scale = 1
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
-
+    bounds = obj.dimensions
     verts = lb.getVertices(obj)
 
-    if (seqMin != None and seqMax !=None):
-        for vert in verts:
-            vert[0] = remap(vert[0], seqMin, seqMax, 0, dims - 1)
-            vert[1] = remap(vert[1], seqMin, seqMax, 0, dims - 1)
-            vert[2] = remap(vert[2], seqMin, seqMax, 0, dims - 1)
-    else:
-        verts = scale_numpy_array(verts, 0, dims - 1)
+    for vert in verts:
+        vert[0] = remap(vert[0], 0, bounds.x, 0, dims - 1)
+        vert[1] = remap(vert[1], 0, bounds.y, 0, dims - 1)
+        vert[2] = remap(vert[2], 0, bounds.z, 0, dims - 1)
 
     for vert in verts:
         x = dims - 1 - int(vert[0])
@@ -390,7 +398,7 @@ def readTempBinvox(dims=256, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([dims-1-z / 256.0, y / 256.0, x / 256.0])
+                    verts.append([dims-1-z, y, x])
     return verts
 
 def getModelPath(url):
