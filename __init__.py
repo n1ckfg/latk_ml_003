@@ -27,6 +27,9 @@ import random
 import torch
 from torch.autograd import Variable
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+import itertools
+from torchvision import datasets
 
 import skeletor as sk
 import trimesh
@@ -48,6 +51,7 @@ def findAddonPath(name=None):
 
 from . import binvox_rw
 from .vox2vox.models import *
+from .vox2vox.dataset import CTDataset
 
 class latkml003Preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
@@ -362,6 +366,33 @@ def readTempH5():
     url = os.path.join(bpy.app.tempdir, "output.im")
     return h5py.File(url, 'r').get('data')[()]
 
+
+def writeTempBinvox(data, dim=256):
+    url = os.path.join(bpy.app.tempdir, "output.binvox")
+    data = np.rint(data).astype(np.uint8)
+    dims = (dim, dim, dim) #data.shape
+    translate = [0, 0, 0]
+    scale = 1.0
+    axis_order = 'xzy'
+    voxel = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
+
+    with open(url, 'bw') as f:
+        voxel.write(f)
+
+def readTempBinvox(dims=256, axis='xyz'):
+    url = os.path.join(bpy.app.tempdir, "output.binvox")
+    voxel = None
+    print("Reading from: " + url)
+    with open(url, 'rb') as f:
+        voxel = binvox_rw.read_as_3d_array(f, True) # fix coords
+    verts = []
+    for x in range(0, dims):
+        for y in range(0, dims):
+            for z in range(0, dims):
+                if (voxel.data[x][y][z] == True):
+                    verts.append([dims-1-z / 256.0, y / 256.0, x / 256.0])
+    return verts
+
 def getModelPath(url):
     return os.path.join(findAddonPath(), url)
 
@@ -386,8 +417,8 @@ def getPyTorchDevice():
     device = None
     if torch.cuda.is_available():
         device = torch.device("cuda")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
+    #elif torch.backends.mps.is_available():
+        #device = torch.device("mps")
     else:
         device = torch.device("cpu")
     return device
@@ -407,16 +438,10 @@ def doInference(net, obj):
     dim = 256
     latkml003 = bpy.context.scene.latkml003_settings
 
-    fake_B = net.detect(readTempH5)
+    fake_B = net.detect()
 
-    data = np.rint(fake_B).astype(np.uint8)
-    dims = (dim, dim, dim) #data.shape
-    translate = [0, 0, 0]
-    scale = 1.0
-    axis_order = 'xzy'
-    voxels = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
-    verts = binvoxToVerts(voxel=voxels, dims=dim, axis='xyz')
-    return verts
+    writeTempBinvox(fake_B)
+    return readTempBinvox()
 
 
 class Vox2Vox_PyTorch():
@@ -432,15 +457,25 @@ class Vox2Vox_PyTorch():
             transforms.ToTensor()
         ])
 
-    def detect(self, h5):
+    def detect(self):
         Tensor = None
         if self.device.type == "cuda":
             Tensor = torch.cuda.FloatTensor
         else:
             Tensor = torch.FloatTensor
 
+        val_dataloader = DataLoader(
+            CTDataset(bpy.app.tempdir, transforms_=self.transforms_, isTest=True),
+            batch_size=1,
+            shuffle=False,
+            num_workers=0,
+        )
+
+        dataiter = iter(val_dataloader)
+        imgs = next(dataiter) #dataiter.next()
+
         """Saves a generated sample from the validation set"""
-        real_A = self.transforms_(h5).unsqueeze_(1).type(Tensor)
+        real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
         #real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
         fake_B = self.net_G(real_A)
 
@@ -503,7 +538,7 @@ def strokeGen(verts, colors, matrix_world, radius=2, minPointsCount=5, limitPale
         stroke.points.add(len(strokeGroup))
 
         for j, index in enumerate(strokeGroup):    
-            point = matrix_world @ verts[index]
+            point = matrix_world @ mathutils.Vector(verts[index])
             #point = matrixWorldInverted @ mathutils.Vector((point[0], point[2], point[1]))
             #point = (point[0], point[1], point[2])
             pressure = 1.0
