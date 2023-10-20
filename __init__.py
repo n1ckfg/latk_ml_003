@@ -607,6 +607,14 @@ def skelGen(obj=None):
     matrixWorld = obj.matrix_world
     #matrixWorldInverted = matrixWorld.inverted()
 
+    gp = lb.getActiveGp()
+    layer = lb.getActiveLayer()
+    if not layer:
+        layer = gp.data.layers.new(name="meshToGp")
+    frame = lb.getActiveFrame()
+    if not frame or frame.frame_number != lb.currentFrame():
+        frame = layer.frames.new(lb.currentFrame())
+
     verts = lb.getVertices(obj)
     faces = lb.getFaces(obj)
 
@@ -616,18 +624,19 @@ def skelGen(obj=None):
     skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
 
     for entity in skel.skeleton.entities:
-        la_s = latk.LatkStroke()
+        stroke = frame.strokes.new()
+        stroke.display_mode = '3DSPACE'
+        stroke.line_width = int(latkml003.thickness) #10 # adjusted from 100 for 2.93
+        stroke.material_index = gp.active_material_index
+        stroke.points.add(len(entity.points))
 
-        for index in entity.points:
+        for i, index in enumerate(entity.points):
             vert = skel.vertices[index]
             vert = matrixWorld @ mathutils.Vector((vert[0], vert[1], vert[2]))
-            la_p = latk.LatkPoint(co=vert)
-            la_s.points.append(la_p)
+            lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
-        la.layers[0].frames[0].strokes.append(la_s)
-
-    lb.fromLatkToGp(la, resizeTimeline=False)
-    lb.setThickness(latkml003.thickness)
+    #lb.fromLatkToGp(la, resizeTimeline=False)
+    #lb.setThickness(latkml003.thickness)
 
     bpy.context.scene.cursor.location = origCursorLocation
 
