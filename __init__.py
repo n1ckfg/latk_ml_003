@@ -279,6 +279,47 @@ if __name__ == "__main__":
 def remap(value, min1, max1, min2, max2):
     return np.interp(value,[min1, max1],[min2, max2])
 
+def normalize(verts, minVal=0.0, maxVal=1.0):
+    allX = []
+    allY = []
+    allZ = []
+
+    for vert in verts:       
+        allX.append(vert[0])
+        allY.append(vert[1])
+        allZ.append(vert[2])
+    
+    allX.sort()
+    allY.sort()
+    allZ.sort()
+    
+    leastValArray = [ allX[0], allY[0], allZ[0] ]
+    mostValArray = [ allX[len(allX)-1], allY[len(allY)-1], allZ[len(allZ)-1] ]
+    leastValArray.sort()
+    mostValArray.sort()
+    leastVal = leastValArray[0]
+    mostVal = mostValArray[2]
+    valRange = mostVal - leastVal
+    
+    xRange = (allX[len(allX)-1] - allX[0]) / valRange
+    yRange = (allY[len(allY)-1] - allY[0]) / valRange
+    zRange = (allZ[len(allZ)-1] - allZ[0]) / valRange
+    
+    minValX = minVal * xRange
+    minValY = minVal * yRange
+    minValZ = minVal * zRange
+    maxValX = maxVal * xRange
+    maxValY = maxVal * yRange
+    maxValZ = maxVal * zRange
+    
+    for vert in verts:
+        x = remap(vert[0], allX[0], allX[len(allX)-1], minValX, maxValX)
+        y = remap(vert[1], allY[0], allY[len(allY)-1], minValY, maxValY)
+        z = remap(vert[2], allZ[0], allZ[len(allZ)-1], minValZ, maxValZ)
+        vert = (x,y,z)
+
+    return verts
+
 def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
     max_range = max(new_range)
@@ -297,7 +338,7 @@ def resizeVoxels(voxel, shape):
     return voxel
 
 #def vertsToBinvox(obj=None, ext="_pre.ply", dims=256, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
-def vertsToBinvox(obj=None, dims=256, doFilter=True, axis='xyz'):
+def vertsToBinvox(obj=None, dims=256, doFilter=False, axis='xyz'):
     if not obj:
         obj = lb.ss()
 
@@ -310,13 +351,10 @@ def vertsToBinvox(obj=None, dims=256, doFilter=True, axis='xyz'):
     bounds = obj.dimensions
     verts = lb.getVertices(obj)
 
+    verts = normalize(verts)
+    
     for vert in verts:
-        vert[0] = remap(vert[0], 0, bounds.x, 0, dims - 1)
-        vert[1] = remap(vert[1], 0, bounds.y, 0, dims - 1)
-        vert[2] = remap(vert[2], 0, bounds.z, 0, dims - 1)
-
-    for vert in verts:
-        x = dims - 1 - int(vert[0])
+        x = dims-1 - int(vert[0])
         y = int(vert[1])
         z = int(vert[2])
         data[x][y][z] = True
