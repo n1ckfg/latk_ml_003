@@ -15,6 +15,7 @@ from bpy.props import (BoolProperty, FloatProperty, StringProperty, IntProperty,
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 import addon_utils
 import mathutils
+import h5py
 
 import os
 import sys
@@ -24,6 +25,9 @@ import latk_blender as lb
 import random
 
 import torch
+from torch.autograd import Variable
+import torchvision.transforms as transforms
+
 import skeletor as sk
 import trimesh
 from scipy.spatial.distance import cdist
@@ -148,18 +152,12 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
         matrix_world = obj.matrix_world
 
         if (op1 == "voxel_ml"):
-            net1, net2 = loadModel()
-
-            la = latk.Latk()
-            la.layers.append(latk.LatkLayer())
+            net1 = loadModel()
 
             for i in range(start, end):
                 lb.goToFrame(i)
-                laFrame = doInference(net1, net2)
-                la.layers[0].frames.append(laFrame)
-
-            lb.fromLatkToGp(la, resizeTimeline=False)
-            lb.setThickness(latkml003.thickness)
+                newVerts = doInference(net1, obj)
+                strokeGen(newVerts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         else:
             for i in range(start, end):
                 lb.goToFrame(i)
@@ -191,16 +189,10 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         matrix_world = obj.matrix_world
 
         if (op1 == "voxel_ml"):
-            net1 = loadModel()
-
-            la = latk.Latk()
-            la.layers.append(latk.LatkLayer())
-            laFrame = doInference(net1)
-            la.layers[0].frames.append(laFrame)
-        
-            lb.fromLatkToGp(la, resizeTimeline=False)
-            lb.setThickness(latkml003.thickness)
-            # automatically do connections in inference step
+            net1 = loadModel()           
+            newVerts = doInference(net1, obj)
+            
+            strokeGen(newVerts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         else:
             if (op2 == "skel_gen"):
                 skelGen(verts, faces, matrix_world)
@@ -290,7 +282,7 @@ def resizeVoxels(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
-def vertsToBinvox(obj=None, ext="_pre.ply", dims=128, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
+def vertsToBinvox(obj=None, ext="_pre.ply", dims=256, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
     if not obj:
         obj = lb.ss()
 
@@ -334,7 +326,7 @@ def vertsToBinvox(obj=None, ext="_pre.ply", dims=128, doFilter=False, seqMin=Non
 
     return bv
 
-def binvoxToVerts(voxel, dims=128, axis='xyz'):
+def binvoxToVerts(voxel, dims=256, axis='xyz'):
     verts = []
     for x in range(0, dims):
         for y in range(0, dims):
@@ -343,20 +335,32 @@ def binvoxToVerts(voxel, dims=128, axis='xyz'):
                     verts.append([dims-1-z, y, x])
     return verts
 
-def binvoxToH5(voxel, dims=128):
+def binvoxToH5(voxel, dims=256):
     shape=(dims, dims, dims)   
     voxel_data = voxel.data.astype(float) #voxel.data.astype(np.float)
     if shape is not None and voxel_data.shape != shape:
         voxel_data = resize(voxel.data.astype(np.float64), shape)
     return voxel_data
 
-def h5ToBinvox(data, dims=128):
+def h5ToBinvox(data, dims=256):
     data = np.rint(data).astype(np.uint8)
     shape = (dims, dims, dims) #data.shape
     translate = [0, 0, 0]
     scale = 1.0
     axis_order = 'xzy'
     return binvox_rw.Voxels(data, shape, translate, scale, axis_order)
+
+def writeTempH5(data):
+    url = os.path.join(bpy.app.tempdir, "output.im")
+    f = h5py.File(url, 'w')
+    # more compression options: https://docs.h5py.org/en/stable/high/dataset.html
+    f.create_dataset('data', data=data, compression='gzip')
+    f.flush()
+    f.close()
+
+def readTempH5():
+    url = os.path.join(bpy.app.tempdir, "output.im")
+    return h5py.File(url, 'r').get('data')[()]
 
 def getModelPath(url):
     return os.path.join(findAddonPath(), url)
@@ -378,33 +382,6 @@ def modelSelector(modelName):
     else:
         return None
 
-def doInference(net):
-    latkml003 = bpy.context.scene.latkml003_settings
-
-    imgs = next(dataiter) #dataiter.next()
-
-    """Saves a generated sample from the validation set"""
-    real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
-    #real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
-    fake_B = generator(real_A)
-
-    # convert to numpy arrays
-    real_A = real_A.cpu().detach().numpy()
-    #real_B = real_B.cpu().detach().numpy()
-    fake_B = fake_B.cpu().detach().numpy()
-
-    image_folder = "output" #/%s_%s_" % (opt.dataset_name, index)
-
-    #write_binvox(real_A, image_folder + 'real_A.binvox')
-
-    data = np.rint(fake_B).astype(np.uint8)
-    dims = (opt.img_width, opt.img_height, opt.img_depth) #data.shape
-    translate = [0, 0, 0]
-    scale = 1.0
-    axis_order = 'xzy'
-    voxels = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
-
-'''
 def getPyTorchDevice():
     device = None
     if torch.cuda.is_available():
@@ -413,36 +390,62 @@ def getPyTorchDevice():
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
-        return device
+    return device
 
-def createPyTorchNetwork(modelPath, net_G, device, input_nc=3, output_nc=1, n_blocks=3):
-    #device = getPyTorchDevice()
+def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, n_blocks=3):
     modelPath = getModelPath(modelPath)
     net_G.to(device)
     net_G.load_state_dict(torch.load(modelPath, map_location=device))
     net_G.eval()
     return net_G
-'''
+
+def doInference(net, obj):
+    bv = vertsToBinvox(obj)
+    h5 = binvoxToH5(bv)
+    writeTempH5(h5)
+
+    dim = 256
+    latkml003 = bpy.context.scene.latkml003_settings
+
+    fake_B = net.detect(readTempH5)
+
+    data = np.rint(fake_B).astype(np.uint8)
+    dims = (dim, dim, dim) #data.shape
+    translate = [0, 0, 0]
+    scale = 1.0
+    axis_order = 'xzy'
+    voxels = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
+    verts = binvoxToVerts(voxel=voxels, dims=dim, axis='xyz')
+    return verts
+
 
 class Vox2Vox_PyTorch():
     def __init__(self, modelPath):
         self.device = getPyTorchDevice()         
-        generator = Generator(3, 1, 3) # input_nc=3, output_nc=1, n_blocks=3
-        self.net_G = createPyTorchNetwork(modelPath, generator, self.device)   
+        generator = GeneratorUNet()
+        if self.device.type == "cuda":
+            generator = generator.cuda()
 
-    def detect(self, srcimg):
-        with torch.no_grad():   
-            srcimg2 = np.transpose(srcimg, (2, 0, 1))
+        self.net_G = createPyTorchNetwork(modelPath, generator, self.device)
 
-            tensor_array = torch.from_numpy(srcimg2)
-            input_tensor = tensor_array.to(self.device)
-            output_tensor = self.net_G(input_tensor)
+        self.transforms_ = transforms.Compose([
+            transforms.ToTensor()
+        ])
 
-            result = output_tensor.detach().cpu().numpy().transpose(1, 2, 0)
-            result *= 255
-            result = cv2.resize(result, (srcimg.shape[1], srcimg.shape[0]))
-            
-            return result
+    def detect(self, h5):
+        Tensor = None
+        if self.device.type == "cuda":
+            Tensor = torch.cuda.FloatTensor
+        else:
+            Tensor = torch.FloatTensor
+
+        """Saves a generated sample from the validation set"""
+        real_A = self.transforms_(h5).unsqueeze_(1).type(Tensor)
+        #real_B = Variable(imgs["B"].unsqueeze_(1).type(Tensor))
+        fake_B = self.net_G(real_A)
+
+        return fake_B.cpu().detach().numpy()
+
 
 def group_points_into_strokes(points, radius, minPointsCount):
     strokeGroups = []
