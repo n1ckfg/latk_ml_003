@@ -136,19 +136,36 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
     
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
-        net1, net2 = loadModel()
 
-        la = latk.Latk()
-        la.layers.append(latk.LatkLayer())
+        op1 = latkml003.Operation1.lower() 
+        op2 = latkml003.Operation2.lower() 
 
         start, end = lb.getStartEnd()
-        for i in range(start, end):
-            lb.goToFrame(i)
-            laFrame = doInference(net1, net2)
-            la.layers[0].frames.append(laFrame)
 
-        lb.fromLatkToGp(la, resizeTimeline=False)
-        lb.setThickness(latkml003.thickness)
+        if (op1 == "voxel_ml"):
+            net1, net2 = loadModel()
+
+            la = latk.Latk()
+            la.layers.append(latk.LatkLayer())
+
+            for i in range(start, end):
+                lb.goToFrame(i)
+                laFrame = doInference(net1, net2)
+                la.layers[0].frames.append(laFrame)
+
+            lb.fromLatkToGp(la, resizeTimeline=False)
+            lb.setThickness(latkml003.thickness)
+        else:
+            target = lb.ss()
+            for i in range(start, end):
+                lb.goToFrame(i)
+                if (op2 == "skel_gen"):
+                    skelGen(target)
+                elif (op2 == "contour_gen"):
+                    contourGen(target)
+                else:
+                    strokeGen(target, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+
         return {'FINISHED'}
 
 
