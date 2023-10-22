@@ -185,7 +185,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op1 == "voxel_ml"):
                 if not net1:
                     net1 = loadModel()           
-                verts = doInference(net1, obj)
+                verts = doInference(net1, verts, dims)
 
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
@@ -216,7 +216,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
 
         net1 = None
         obj = lb.ss()
-        
+
         verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
@@ -227,7 +227,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op1 == "voxel_ml"):
             if not net1:
                 net1 = loadModel()           
-            verts = doInference(net1, obj)
+            verts = doInference(net1, verts, dims)
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -364,25 +364,18 @@ def resizeVoxels(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
-#def vertsToBinvox(obj=None, ext="_pre.ply", dims=256, doFilter=False, seqMin=None, seqMax=None, axis='xyz'):
-def vertsToBinvox(obj=None, dims=256, doFilter=False, axis='xyz'):
-    if not obj:
-        obj = lb.ss()
-
-    dims_ = dims-1
+def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
     translate = (0, 0, 0)
     scale = 1
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
-    bounds = obj.dimensions
-    verts = lb.getVertices(obj)
 
-    verts = normalize(verts, dims_)
-    
+    verts = scale_numpy_array(verts, 0, dims - 1)
+
     for vert in verts:
-        x = dims_ - int(vert[0])
+        x = dims - 1 - int(vert[0])
         y = int(vert[1])
         z = int(vert[2])
         data[x][y][z] = True
@@ -406,12 +399,11 @@ def vertsToBinvox(obj=None, dims=256, doFilter=False, axis='xyz'):
 
 def binvoxToVerts(voxel, dims=256, axis='xyz'):
     verts = []
-    dims_ = dims-1
-    for x in range(0, dims_):
-        for y in range(0, dims_):
-            for z in range(0, dims_):
+    for x in range(0, dims):
+        for y in range(0, dims):
+            for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([dims_-z, y, x])
+                    verts.append([dims-1-z, y, x])
     return verts
 
 def binvoxToH5(voxel, dims=256):
@@ -442,10 +434,10 @@ def readTempH5():
     return h5py.File(url, 'r').get('data')[()]
 
 
-def writeTempBinvox(data, dim=256):
+def writeTempBinvox(data, dims=256):
     url = os.path.join(bpy.app.tempdir, "output.binvox")
     data = np.rint(data).astype(np.uint8)
-    dims = (dim, dim, dim) #data.shape
+    dims = (dims, dims, dims) #data.shape
     translate = [0, 0, 0]
     scale = 1.0
     axis_order = 'xzy'
@@ -508,18 +500,15 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     net_G.eval()
     return net_G
 
-def doInference(net, obj):
-    bv = vertsToBinvox(obj)
-    h5 = binvoxToH5(bv)
+def doInference(net, verts, dims=256):
+    bv = vertsToBinvox(verts, dims=dims)
+    h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
-
-    dim = 256
-    latkml003 = bpy.context.scene.latkml003_settings
 
     fake_B = net.detect()
 
-    writeTempBinvox(fake_B)
-    return readTempBinvox()
+    writeTempBinvox(fake_B, dims=dims)
+    return readTempBinvox(dims=dims)
 
 
 class Vox2Vox_PyTorch():
