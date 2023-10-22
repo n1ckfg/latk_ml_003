@@ -359,6 +359,16 @@ def resizeVoxels(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
+def getAveragePosition(verts, matrix_world=None):
+    returns = mathutils.Vector((0,0,0))
+    for vert in verts:
+        if not matrix_world:
+            returns += mathutils.Vector(vert)
+        else:
+            returns += matrix_world @ mathutils.Vector(vert)
+    returns /= float(len(verts))
+    return returns
+    
 def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
