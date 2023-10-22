@@ -121,10 +121,10 @@ class latkml003Properties(bpy.types.PropertyGroup):
     Model: EnumProperty(
         name="Model",
         items=(
-            ("256_V001", "256 v001", "...", 0),
-            ("256_V002", "256 v002", "...", 1)
+            ("256_V008", "256 v008", "...", 0),
+            ("128_V008", "128 v008", "...", 1)
         ),
-        default="256_V001"
+        default="256_V008"
     )
 
     thickness: FloatProperty(
@@ -133,14 +133,10 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default=10.0
     )
 
-    Dims: EnumProperty(
+    dims: IntProperty(
         name="Dims",
-        items=(
-            ("256", "256^3", "...", 0),
-            ("128", "128^3", "...", 1),
-            ("64", "64^3", "...", 2)
-        ),
-        default="256"
+        description="Voxel Dimensions",
+        default=256
     )
 
     strokegen_radius: FloatProperty(
@@ -163,7 +159,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
     
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
-        dims = int(latkml003.Dims)
+        dims = latkml003.dims
         
         op1 = latkml003.Operation1.lower() 
         op2 = latkml003.Operation2.lower() 
@@ -186,6 +182,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
                 if not net1:
                     net1 = loadModel()           
                 verts = doInference(net1, verts, dims)
+                #verts = normalize(verts)
 
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
@@ -208,7 +205,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
     
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
-        dims = int(latkml003.Dims)
+        dims = latkml003.dims
         
         op1 = latkml003.Operation1.lower() 
         op2 = latkml003.Operation2.lower() 
@@ -265,8 +262,6 @@ class latkml003Properties_Panel(bpy.types.Panel):
         row = layout.row()
         row.prop(latkml003, "Operation1")
         row = layout.row()
-        row.prop(latkml003, "Dims")
-        row = layout.row()
         row.prop(latkml003, "Model")
 
         row = layout.row()
@@ -307,6 +302,7 @@ def remap(value, min1, max1, min2, max2):
     return np.interp(value,[min1, max1],[min2, max2])
 
 def normalize(verts, minVal=0.0, maxVal=1.0):
+    newVerts = []
     allX = []
     allY = []
     allZ = []
@@ -343,9 +339,9 @@ def normalize(verts, minVal=0.0, maxVal=1.0):
         x = remap(vert[0], allX[0], allX[len(allX)-1], minValX, maxValX)
         y = remap(vert[1], allY[0], allY[len(allY)-1], minValY, maxValY)
         z = remap(vert[2], allZ[0], allZ[len(allZ)-1], minValZ, maxValZ)
-        vert = (x,y,z)
+        newVerts.append((x,y,z))
 
-    return verts
+    return newVerts
 
 def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
@@ -474,12 +470,12 @@ def modelSelector(modelName):
     modelName = modelName.lower()
     latkml003.dims = int(modelName.split("_")[0])
 
-    if (modelName == "256_v001"):
-        return Vox2Vox_PyTorch("model/generator_100.pth")
-    elif (modelName == "256_v002"):
-        return Vox2Vox_PyTorch("model/generator_100.pth")
-    elif (modelName == "256_v003"):
-        return Vox2Vox_PyTorch("model/generator_100.pth")
+    if (modelName == "256_v008"):
+        latkml003.dims = 256
+        return Vox2Vox_PyTorch("model/256_100.pth")
+    elif (modelName == "128_v008"):
+        latkml003.dims = 128
+        return Vox2Vox_PyTorch("model/128_100.pth")
     else:
         return None
 
@@ -508,7 +504,8 @@ def doInference(net, verts, dims=256):
     fake_B = net.detect()
 
     writeTempBinvox(fake_B, dims=dims)
-    return readTempBinvox(dims=dims)
+    newVerts = readTempBinvox(dims=dims)
+    return newVerts
 
 
 class Vox2Vox_PyTorch():
