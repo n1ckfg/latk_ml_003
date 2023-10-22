@@ -190,9 +190,9 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
 
-            if (op3 == "skel_gen" and op1 != "voxel_ml"):
+            if (op3 == "skel_gen" and op1 == op2):
                 skelGen(verts, faces, matrix_world)
-            elif (op3 == "contour_gen" and op1 != "voxel_ml"):
+            elif (op3 == "contour_gen" and op1 == op2):
                 contourGen(verts, faces, matrix_world)
             else:
                 strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
@@ -232,9 +232,9 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
 
-        if (op3 == "skel_gen" and op1 != "voxel_ml"):
+        if (op3 == "skel_gen" and op1 == op2):
             skelGen(verts, faces, matrix_world)
-        elif (op3 == "contour_gen" and op1 != "voxel_ml"):
+        elif (op3 == "contour_gen" and op1 == op2):
             contourGen(verts, faces, matrix_world)
         else:
             strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
