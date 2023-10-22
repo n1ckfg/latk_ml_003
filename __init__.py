@@ -164,47 +164,39 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
         dims = int(latkml003.Dims)
-
+        
         op1 = latkml003.Operation1.lower() 
         op2 = latkml003.Operation2.lower() 
         op3 = latkml003.Operation3.lower() 
 
-        start, end = lb.getStartEnd()
-
+        net1 = None
         obj = lb.ss()
-        verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-        verts = lb.getVertices(obj)
-        faces = lb.getFaces(obj)
-        matrix_world = obj.matrix_world
-
-        if (op1 == "voxel_ml"):
-            net1 = loadModel()
-
-            for i in range(start, end):
-                lb.goToFrame(i)
-                verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-                bounds = obj.dimensions
-                avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
-                newVerts = doInference(net1, obj)
-                strokeGen(newVerts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
-        
-        if (op2 == "get_edges"):
-            verts = differenceEigenvalues(verts)
 
         for i in range(start, end):
             lb.goToFrame(i)
+
+            verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+            verts = lb.getVertices(obj)
+            faces = lb.getFaces(obj)
+            matrix_world = obj.matrix_world
+            bounds = obj.dimensions
+            avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
+
+            if (op1 == "voxel_ml"):
+                if not net1:
+                    net1 = loadModel()           
+                verts = doInference(net1, obj)
+
+            if (op2 == "get_edges"):
+                verts = differenceEigenvalues(verts)
+
             if (op3 == "skel_gen"):
-                verts = lb.getVertices(obj)
                 skelGen(verts, faces, matrix_world)
             elif (op3 == "contour_gen"):
-                verts = lb.getVertices(obj)
                 contourGen(verts, faces, matrix_world)
             else:
-                verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-                bounds = obj.dimensions
-                avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0                    
                 strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
-
+            
         return {'FINISHED'}
 
 
@@ -222,7 +214,9 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         op2 = latkml003.Operation2.lower() 
         op3 = latkml003.Operation3.lower() 
 
+        net1 = None
         obj = lb.ss()
+        
         verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
@@ -231,12 +225,9 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
 
         if (op1 == "voxel_ml"):
-            net1 = loadModel()           
+            if not net1:
+                net1 = loadModel()           
             verts = doInference(net1, obj)
-            for vert in newVerts:
-                vert[0] = remap(vert[0], 0, dims - 1, 0, bounds.x)
-                vert[1] = remap(vert[1], 0, dims - 1, 0, bounds.y)
-                vert[2] = remap(vert[2], 0, dims - 1, 0, bounds.z)
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
