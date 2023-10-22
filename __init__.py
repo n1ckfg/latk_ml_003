@@ -190,9 +190,9 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
 
-            if (op3 == "skel_gen"):
+            if (op3 == "skel_gen" and op1 != "voxel_ml"):
                 skelGen(verts, faces, matrix_world)
-            elif (op3 == "contour_gen"):
+            elif (op3 == "contour_gen" and op1 != "voxel_ml"):
                 contourGen(verts, faces, matrix_world)
             else:
                 strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
@@ -232,9 +232,9 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
 
-        if (op3 == "skel_gen"):
+        if (op3 == "skel_gen" and op1 != "voxel_ml"):
             skelGen(verts, faces, matrix_world)
-        elif (op3 == "contour_gen"):
+        elif (op3 == "contour_gen" and op1 != "voxel_ml"):
             contourGen(verts, faces, matrix_world)
         else:
             strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
@@ -437,11 +437,11 @@ def readTempH5():
 def writeTempBinvox(data, dims=256):
     url = os.path.join(bpy.app.tempdir, "output.binvox")
     data = np.rint(data).astype(np.uint8)
-    dims = (dims, dims, dims) #data.shape
+    shape = (dims, dims, dims) #data.shape
     translate = [0, 0, 0]
     scale = 1.0
     axis_order = 'xzy'
-    voxel = binvox_rw.Voxels(data, dims, translate, scale, axis_order)
+    voxel = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
     with open(url, 'bw') as f:
         voxel.write(f)
@@ -501,7 +501,7 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     return net_G
 
 def doInference(net, verts, dims=256):
-    bv = vertsToBinvox(verts, dims=dims)
+    bv = vertsToBinvox(verts, dims=dims, doFilter=True)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
 
