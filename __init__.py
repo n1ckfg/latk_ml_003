@@ -102,6 +102,15 @@ class latkml003Properties(bpy.types.PropertyGroup):
     Operation2: EnumProperty(
         name="Operation 2",
         items=(
+            ("NONE", "None", "...", 0),
+            ("GET_EDGES", "Get Edges", "...", 1)
+        ),
+        default="NONE"
+    )
+
+    Operation3: EnumProperty(
+        name="Operation 3",
+        items=(
             ("STROKE_GEN", "Connect Strokes", "...", 0),
             ("CONTOUR_GEN", "Connect Contours", "...", 1),
             ("SKEL_GEN", "Connect Skeleton", "...", 2)
@@ -112,10 +121,10 @@ class latkml003Properties(bpy.types.PropertyGroup):
     Model: EnumProperty(
         name="Model",
         items=(
-            ("256V001", "256x256 v001", "...", 0),
-            ("256V002", "256x256 v002", "...", 1)
+            ("256_V001", "256 v001", "...", 0),
+            ("256_V002", "256 v002", "...", 1)
         ),
-        default="256V001"
+        default="256_V001"
     )
 
     thickness: FloatProperty(
@@ -124,10 +133,20 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default=10.0
     )
 
+    Dims: EnumProperty(
+        name="Dims",
+        items=(
+            ("256", "256^3", "...", 0),
+            ("128", "128^3", "...", 1),
+            ("64", "64^3", "...", 2)
+        ),
+        default="256"
+    )
+
     strokegen_radius: FloatProperty(
         name="StrokeGen Radius",
         description="Base search distance for points",
-        default=2
+        default=1
     )
 
     strokegen_minPointsCount: IntProperty(
@@ -144,14 +163,17 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
     
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
+        dims = int(latkml003.Dims)
 
         op1 = latkml003.Operation1.lower() 
         op2 = latkml003.Operation2.lower() 
+        op3 = latkml003.Operation3.lower() 
 
         start, end = lb.getStartEnd()
 
         obj = lb.ss()
-        verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
 
@@ -160,17 +182,28 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
 
             for i in range(start, end):
                 lb.goToFrame(i)
+                verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+                bounds = obj.dimensions
+                avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
                 newVerts = doInference(net1, obj)
-                strokeGen(newVerts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
-        else:
-            for i in range(start, end):
-                lb.goToFrame(i)
-                if (op2 == "skel_gen"):
-                    skelGen(verts, faces, matrix_world)
-                elif (op2 == "contour_gen"):
-                    contourGen(verts, faces, matrix_world)
-                else:
-                    strokeGen(verts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+                strokeGen(newVerts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+        
+        if (op2 == "get_edges"):
+            verts = differenceEigenvalues(verts)
+
+        for i in range(start, end):
+            lb.goToFrame(i)
+            if (op3 == "skel_gen"):
+                verts = lb.getVertices(obj)
+                skelGen(verts, faces, matrix_world)
+            elif (op3 == "contour_gen"):
+                verts = lb.getVertices(obj)
+                contourGen(verts, faces, matrix_world)
+            else:
+                verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+                bounds = obj.dimensions
+                avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0                    
+                strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
 
         return {'FINISHED'}
 
@@ -183,34 +216,38 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
     
     def execute(self, context):
         latkml003 = context.scene.latkml003_settings
+        dims = int(latkml003.Dims)
         
         op1 = latkml003.Operation1.lower() 
         op2 = latkml003.Operation2.lower() 
+        op3 = latkml003.Operation3.lower() 
 
         obj = lb.ss()
-        verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
         bounds = obj.dimensions
         avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
-        dims = 256
 
         if (op1 == "voxel_ml"):
             net1 = loadModel()           
-            newVerts = doInference(net1, obj)
+            verts = doInference(net1, obj)
             for vert in newVerts:
                 vert[0] = remap(vert[0], 0, dims - 1, 0, bounds.x)
                 vert[1] = remap(vert[1], 0, dims - 1, 0, bounds.y)
                 vert[2] = remap(vert[2], 0, dims - 1, 0, bounds.z)
-                #vert = matrix_world @ mathutils.Vector(vert)
-            strokeGen(newVerts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+
+        if (op2 == "get_edges"):
+            verts = differenceEigenvalues(verts)
+
+        if (op3 == "skel_gen"):
+            skelGen(verts, faces, matrix_world)
+        elif (op3 == "contour_gen"):
+            contourGen(verts, faces, matrix_world)
         else:
-            if (op2 == "skel_gen"):
-                skelGen(verts, faces, matrix_world)
-            elif (op2 == "contour_gen"):
-                contourGen(verts, faces, matrix_world)
-            else:
-                strokeGen(verts, colors, matrix_world, radius=latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+        
         return {'FINISHED'}
 
 
@@ -236,7 +273,8 @@ class latkml003Properties_Panel(bpy.types.Panel):
 
         row = layout.row()
         row.prop(latkml003, "Operation1")
-
+        row = layout.row()
+        row.prop(latkml003, "Dims")
         row = layout.row()
         row.prop(latkml003, "Model")
 
@@ -244,15 +282,13 @@ class latkml003Properties_Panel(bpy.types.Panel):
         row.prop(latkml003, "Operation2")
 
         row = layout.row()
+        row.prop(latkml003, "Operation3")
+        row = layout.row()
         row.prop(latkml003, "thickness")
-
         row = layout.row()
         row.prop(latkml003, "strokegen_radius")
         row.prop(latkml003, "strokegen_minPointsCount")
 
-        row = layout.row()
-
-        row = layout.row()
 
 classes = (
     OBJECT_OT_latkml003_prefs,
@@ -342,6 +378,7 @@ def vertsToBinvox(obj=None, dims=256, doFilter=False, axis='xyz'):
     if not obj:
         obj = lb.ss()
 
+    dims_ = dims-1
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
     translate = (0, 0, 0)
@@ -351,10 +388,10 @@ def vertsToBinvox(obj=None, dims=256, doFilter=False, axis='xyz'):
     bounds = obj.dimensions
     verts = lb.getVertices(obj)
 
-    verts = normalize(verts)
+    verts = normalize(verts, dims_)
     
     for vert in verts:
-        x = dims-1 - int(vert[0])
+        x = dims_ - int(vert[0])
         y = int(vert[1])
         z = int(vert[2])
         data[x][y][z] = True
@@ -378,11 +415,12 @@ def vertsToBinvox(obj=None, dims=256, doFilter=False, axis='xyz'):
 
 def binvoxToVerts(voxel, dims=256, axis='xyz'):
     verts = []
-    for x in range(0, dims):
-        for y in range(0, dims):
-            for z in range(0, dims):
+    dims_ = dims-1
+    for x in range(0, dims_):
+        for y in range(0, dims_):
+            for z in range(0, dims_):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([dims-1-z, y, x])
+                    verts.append([dims_-z, y, x])
     return verts
 
 def binvoxToH5(voxel, dims=256):
@@ -448,13 +486,16 @@ def loadModel():
     return returns
 
 def modelSelector(modelName):
+    latkml003 = bpy.context.scene.latkml003_settings
+
     modelName = modelName.lower()
-    
-    if (modelName == "256v001"):
+    latkml003.dims = int(modelName.split("_")[0])
+
+    if (modelName == "256_v001"):
         return Vox2Vox_PyTorch("model/generator_100.pth")
-    elif (modelName == "256v002"):
+    elif (modelName == "256_v002"):
         return Vox2Vox_PyTorch("model/generator_100.pth")
-    elif (modelName == "256v003"):
+    elif (modelName == "256_v003"):
         return Vox2Vox_PyTorch("model/generator_100.pth")
     else:
         return None
@@ -692,18 +733,15 @@ def skelGen(verts, faces, matrix_world):
 
     bpy.context.scene.cursor.location = origCursorLocation
 
-def differenceEigenvalues(obj=None):
+def differenceEigenvalues(verts):
     # MIT License Copyright (c) 2015 Dena Bazazian Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    if not obj:
-        obj = lb.ss()
 
-    verts = lb.getVertices(obj)
     pdVerts = pd.DataFrame(verts, columns=["x", "y", "z"])
     pcd1 = PyntCloud(pdVerts)
         
     # define hyperparameters
-    k_n = 40 # 50
-    thresh = 0.08 # 0.03
+    k_n = 50 # 50
+    thresh = 0.03 # 0.03
 
     pcd_np = np.zeros((len(pcd1.points),6))
 
