@@ -181,8 +181,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op1 == "voxel_ml"):
                 if not net1:
                     net1 = loadModel()           
-                verts = doInference(net1, verts, dims)
-                #verts = normalize(verts)
+                verts = doInference(net1, verts, dims, bounds)
 
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
@@ -224,7 +223,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op1 == "voxel_ml"):
             if not net1:
                 net1 = loadModel()           
-            verts = doInference(net1, verts, dims)
+            verts = doInference(net1, verts, dims, bounds)
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -496,7 +495,7 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     net_G.eval()
     return net_G
 
-def doInference(net, verts, dims=256):
+def doInference(net, verts, dims=256, bounds=(1,1,1)):
     bv = vertsToBinvox(verts, dims=dims, doFilter=True)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
@@ -504,7 +503,17 @@ def doInference(net, verts, dims=256):
     fake_B = net.detect()
 
     writeTempBinvox(fake_B, dims=dims)
-    newVerts = readTempBinvox(dims=dims)
+    verts = readTempBinvox(dims=dims)
+    newVerts = normalize(verts)
+
+    dims_ = float(dims-1)
+    for i in range(0, len(newVerts)):
+        vert = newVerts[i]
+        x = vert[0] * bounds.x
+        y = vert[1] * bounds.y
+        z = vert[2] * bounds.z
+        newVerts[i] = (x, y, z)
+
     return newVerts
 
 
