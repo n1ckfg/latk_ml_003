@@ -181,7 +181,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op1 == "voxel_ml"):
                 if not net1:
                     net1 = loadModel()           
-                verts = doInference(net1, verts, dims, bounds)
+                verts = doInference(net1, verts, dims, bounds, matrix_world)
 
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
@@ -223,7 +223,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op1 == "voxel_ml"):
             if not net1:
                 net1 = loadModel()           
-            verts = doInference(net1, verts, dims, bounds)
+            verts = doInference(net1, verts, dims, bounds, matrix_world)
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -367,12 +367,12 @@ def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
-    verts = scale_numpy_array(verts, 0, dims - 1)
+    verts = normalize(verts, float(dims-1))
 
     for vert in verts:
-        x = dims - 1 - int(vert[0])
-        y = int(vert[1])
-        z = int(vert[2])
+        x = int(vert[0])
+        y = dims - 1 - int(vert[1])
+        z = dims - 1 - int(vert[2])
         data[x][y][z] = True
 
     if (doFilter == True):
@@ -398,7 +398,8 @@ def binvoxToVerts(voxel, dims=256, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([dims-1-z, y, x])
+                    #verts.append([dims-1-z, y, x])
+                    verts.append([z, y, x])
     return verts
 
 def binvoxToH5(voxel, dims=256):
@@ -470,10 +471,8 @@ def modelSelector(modelName):
     latkml003.dims = int(modelName.split("_")[0])
 
     if (modelName == "256_v008"):
-        latkml003.dims = 256
         return Vox2Vox_PyTorch("model/256_100.pth")
     elif (modelName == "128_v008"):
-        latkml003.dims = 128
         return Vox2Vox_PyTorch("model/128_100.pth")
     else:
         return None
@@ -495,7 +494,7 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     net_G.eval()
     return net_G
 
-def doInference(net, verts, dims=256, bounds=(1,1,1)):
+def doInference(net, verts, dims=256, bounds=(1,1,1), matrix_world=None): 
     bv = vertsToBinvox(verts, dims=dims, doFilter=True)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
@@ -504,17 +503,11 @@ def doInference(net, verts, dims=256, bounds=(1,1,1)):
 
     writeTempBinvox(fake_B, dims=dims)
     verts = readTempBinvox(dims=dims)
-    newVerts = normalize(verts)
 
-    dims_ = float(dims-1)
-    for i in range(0, len(newVerts)):
-        vert = newVerts[i]
-        x = vert[0] * bounds.x
-        y = vert[1] * bounds.y
-        z = vert[2] * bounds.z
-        newVerts[i] = (x, y, z)
+    for i in range(0, len(verts)):
+        verts[i] = matrix_world @ mathutils.Vector(verts[i]) * mathutils.Vector(bounds)
 
-    return newVerts
+    return verts
 
 
 class Vox2Vox_PyTorch():
