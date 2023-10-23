@@ -133,6 +133,12 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default=10.0
     )
 
+    do_filter: BoolProperty(
+        name="Prefilter",
+        description="...",
+        default=True
+    )
+
     dims: IntProperty(
         name="Dims",
         description="Voxel Dimensions",
@@ -264,6 +270,7 @@ class latkml003Properties_Panel(bpy.types.Panel):
         row.prop(latkml003, "Operation1")
         row = layout.row()
         row.prop(latkml003, "Model")
+        row.prop(latkml003, "do_filter")
 
         row = layout.row()
         row.prop(latkml003, "Operation2")
@@ -468,12 +475,13 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     return net_G
 
 def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
+    latkml003 = bpy.context.scene.latkml003_settings
     avgPositionOrig = getAveragePosition(verts)
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = avgPositionOrig
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
-    bv = vertsToBinvox(verts, dims, doFilter=True)
+    bv = vertsToBinvox(verts, dims, doFilter=latkml003.do_filter)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
 
