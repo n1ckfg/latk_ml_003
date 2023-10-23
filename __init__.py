@@ -14,7 +14,7 @@ from bpy.types import Operator, AddonPreferences
 from bpy.props import (BoolProperty, FloatProperty, StringProperty, IntProperty, PointerProperty, EnumProperty)
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 import addon_utils
-import mathutils
+from mathutils import Vector, Matrix
 import h5py
 
 import os
@@ -181,7 +181,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op1 == "voxel_ml"):
                 if not net1:
                     net1 = loadModel()           
-                verts = doInference(net1, verts, dims, bounds, matrix_world)
+                verts = doInference(net1, verts, matrix_world, dims, bounds)
 
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
@@ -223,7 +223,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op1 == "voxel_ml"):
             if not net1:
                 net1 = loadModel()           
-            verts = doInference(net1, verts, dims, bounds, matrix_world)
+            verts = doInference(net1, verts, matrix_world, dims, bounds)
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -300,13 +300,15 @@ if __name__ == "__main__":
 def remap(value, min1, max1, min2, max2):
     return np.interp(value,[min1, max1],[min2, max2])
 
-def normalize(verts, minVal=0.0, maxVal=1.0):
+def normalize(verts, matrix_world, minVal=0.0, maxVal=1.0):
     newVerts = []
     allX = []
     allY = []
     allZ = []
 
-    for vert in verts:       
+    for vert in verts:   
+        #vert_world = matrix_world @ Vector(vert)   
+        #vert = (vert_world[0], vert_world[1], vert_world[2]) 
         allX.append(vert[0])
         allY.append(vert[1])
         allZ.append(vert[2])
@@ -359,17 +361,17 @@ def resizeVoxels(voxel, shape):
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
 
-def getAveragePosition(verts, matrix_world=None):
-    returns = mathutils.Vector((0,0,0))
+def getAveragePosition(verts, matrix_world):
+    returns = Vector((0,0,0))
     for vert in verts:
         if not matrix_world:
-            returns += mathutils.Vector(vert)
+            returns += Vector(vert)
         else:
-            returns += matrix_world @ mathutils.Vector(vert)
+            returns += matrix_world @ Vector(vert)
     returns /= float(len(verts))
     return returns
     
-def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
+def vertsToBinvox(verts, matrix_world, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
     translate = (0, 0, 0)
@@ -377,7 +379,7 @@ def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
-    verts = normalize(verts, float(dims-1))
+    verts = normalize(verts, matrix_world, float(dims-1))
 
     for vert in verts:
         x = int(vert[0])
@@ -504,8 +506,14 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     net_G.eval()
     return net_G
 
-def doInference(net, verts, dims=256, bounds=(1,1,1), matrix_world=None): 
-    bv = vertsToBinvox(verts, dims=dims, doFilter=True)
+def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
+    origCursorLocation = bpy.context.scene.cursor.location
+
+    avgPositionOrig = getAveragePosition(verts, matrix_world)
+
+    bpy.context.scene.cursor.location = avgPositionOrig
+
+    bv = vertsToBinvox(verts, matrix_world, dims, doFilter=True)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
 
@@ -516,7 +524,13 @@ def doInference(net, verts, dims=256, bounds=(1,1,1), matrix_world=None):
     dims_ = float(dims - 1)
 
     for i in range(0, len(verts)):
-        verts[i] = matrix_world @ ((mathutils.Vector(verts[i]) / dims_) * mathutils.Vector(bounds))
+        verts[i] = matrix_world.inverted() @ ((Vector(verts[i]) / dims_) * Vector(bounds))
+
+    avgPositionNew = getAveragePosition(verts, matrix_world)
+    diffPosition = avgPositionOrig - avgPositionNew
+
+    for i in range(0, len(verts)):
+        verts[i] += diffPosition
 
     return verts
 
@@ -615,8 +629,8 @@ def strokeGen(verts, colors, matrix_world, radius=2, minPointsCount=5, limitPale
         stroke.points.add(len(strokeGroup))
 
         for j, index in enumerate(strokeGroup):    
-            point = matrix_world @ mathutils.Vector(verts[index])
-            #point = matrixWorldInverted @ mathutils.Vector((point[0], point[2], point[1]))
+            point = matrix_world @ Vector(verts[index])
+            #point = matrixWorldInverted @ Vector((point[0], point[2], point[1]))
             #point = (point[0], point[1], point[2])
             pressure = 1.0
             strength = 1.0
@@ -677,7 +691,7 @@ def contourGen(verts, faces, matrix_world):
 
                 for i, index in enumerate(entity.points):
                     vert = slice_mesh.vertices[index] 
-                    vert = matrix_world @ mathutils.Vector(vert)
+                    vert = matrix_world @ Vector(vert)
                     #vert = [vert[0], vert[1], vert[2]]
                     lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
@@ -715,7 +729,7 @@ def skelGen(verts, faces, matrix_world):
 
         for i, index in enumerate(entity.points):
             vert = skel.vertices[index]
-            vert = matrix_world @ mathutils.Vector((vert[0], vert[1], vert[2]))
+            vert = matrix_world @ Vector((vert[0], vert[1], vert[2]))
             lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
     #lb.fromLatkToGp(la, resizeTimeline=False)
