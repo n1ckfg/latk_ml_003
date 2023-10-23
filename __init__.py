@@ -307,8 +307,6 @@ def normalize(verts, minVal=0.0, maxVal=1.0):
     allZ = []
 
     for vert in verts:   
-        #vert_world = matrix_world @ Vector(vert)   
-        #vert = (vert_world[0], vert_world[1], vert_world[2]) 
         allX.append(vert[0])
         allY.append(vert[1])
         allZ.append(vert[2])
@@ -371,7 +369,7 @@ def getAveragePosition(verts, matrix_world=None):
     returns /= float(len(verts))
     return returns
     
-def vertsToBinvox(verts, matrix_world, dims=256, doFilter=False, axis='xyz'):
+def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
     translate = (0, 0, 0)
@@ -507,13 +505,9 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     return net_G
 
 def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
-    #origCursorLocation = bpy.context.scene.cursor.location
+    avgPositionOrig = getAveragePosition(verts)
 
-    avgPositionOrig = getAveragePosition(verts, matrix_world)
-
-    #bpy.context.scene.cursor.location = avgPositionOrig
-
-    bv = vertsToBinvox(verts, matrix_world, dims, doFilter=True)
+    bv = vertsToBinvox(verts, dims, doFilter=True)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
 
@@ -526,7 +520,7 @@ def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     for i in range(0, len(verts)):
         verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
 
-    avgPositionNew = getAveragePosition(verts, matrix_world)
+    avgPositionNew = getAveragePosition(verts)
     diffPosition = avgPositionOrig - avgPositionNew
 
     for i in range(0, len(verts)):
