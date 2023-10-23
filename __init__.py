@@ -513,9 +513,10 @@ def doInference(net, verts, dims=256, bounds=(1,1,1), matrix_world=None):
 
     writeTempBinvox(fake_B, dims=dims)
     verts = readTempBinvox(dims=dims)
+    dims_ = float(dims - 1)
 
     for i in range(0, len(verts)):
-        verts[i] = matrix_world @ mathutils.Vector(verts[i]) * mathutils.Vector(bounds)
+        verts[i] = matrix_world @ ((mathutils.Vector(verts[i]) / dims_) * mathutils.Vector(bounds))
 
     return verts
 
