@@ -228,9 +228,9 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
 
-        if (op3 == "skel_gen" and op1 == op2):
+        if (op3 == "skel_gen"):
             skelGen(verts, faces, matrix_world)
-        elif (op3 == "contour_gen" and op1 == op2):
+        elif (op3 == "contour_gen"):
             contourGen(verts, faces, matrix_world)
         else:
             strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
@@ -368,7 +368,7 @@ def getAveragePosition(verts, matrix_world=None):
             returns += matrix_world @ Vector(vert)
     returns /= float(len(verts))
     return returns
-    
+   
 def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
@@ -438,7 +438,6 @@ def writeTempH5(data):
 def readTempH5():
     url = os.path.join(bpy.app.tempdir, "output.im")
     return h5py.File(url, 'r').get('data')[()]
-
 
 def writeTempBinvox(data, dims=256):
     url = os.path.join(bpy.app.tempdir, "output.binvox")
@@ -649,11 +648,11 @@ def contourGen(verts, faces, matrix_world):
 
     mesh = None
 
-    if len(faces) < 1:
+    try: 
+        mesh = trimesh.Trimesh(verts, faces)
+    except:
         tri = Delaunay(verts)
         mesh = trimesh.Trimesh(tri.points, tri.simplices)
-    else:
-        mesh = trimesh.Trimesh(verts, faces)
 
     bounds = lb.getDistance(mesh.bounds[0], mesh.bounds[1])
 
@@ -709,8 +708,14 @@ def skelGen(verts, faces, matrix_world):
     if not frame or frame.frame_number != lb.currentFrame():
         frame = layer.frames.new(lb.currentFrame())
 
-    mesh = trimesh.Trimesh(verts, faces)
+    mesh = None
 
+    try: 
+        mesh = trimesh.Trimesh(verts, faces)
+    except:
+        tri = Delaunay(verts)
+        mesh = trimesh.Trimesh(tri.points, tri.simplices)
+        
     fixed = sk.pre.fix_mesh(mesh, remove_disconnected=5, inplace=False)
     skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
 
