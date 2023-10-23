@@ -715,7 +715,7 @@ def skelGen(verts, faces, matrix_world):
     except:
         tri = Delaunay(verts)
         mesh = trimesh.Trimesh(tri.points, tri.simplices)
-        
+
     fixed = sk.pre.fix_mesh(mesh, remove_disconnected=5, inplace=False)
     skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
 
