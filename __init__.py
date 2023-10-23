@@ -167,6 +167,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
 
         net1 = None
         obj = lb.ss()
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
         for i in range(start, end):
             lb.goToFrame(i)
@@ -191,7 +192,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             elif (op3 == "contour_gen" and op1 == op2):
                 contourGen(verts, faces, matrix_world)
             else:
-                strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+                strokeGen(verts, colors, matrix_world=None, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
             
         return {'FINISHED'}
 
@@ -212,6 +213,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
 
         net1 = None
         obj = lb.ss()
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
         verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         verts = lb.getVertices(obj)
@@ -229,11 +231,11 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
             verts = differenceEigenvalues(verts)
 
         if (op3 == "skel_gen"):
-            skelGen(verts, faces, matrix_world)
+            skelGen(verts, faces, matrix_world=None)
         elif (op3 == "contour_gen"):
-            contourGen(verts, faces, matrix_world)
+            contourGen(verts, faces, matrix_world=None)
         else:
-            strokeGen(verts, colors, matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            strokeGen(verts, colors, matrix_world=None, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         
         return {'FINISHED'}
 
@@ -297,51 +299,6 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-def remap(value, min1, max1, min2, max2):
-    return np.interp(value,[min1, max1],[min2, max2])
-
-def normalize(verts, minVal=0.0, maxVal=1.0):
-    newVerts = []
-    allX = []
-    allY = []
-    allZ = []
-
-    for vert in verts:   
-        allX.append(vert[0])
-        allY.append(vert[1])
-        allZ.append(vert[2])
-    
-    allX.sort()
-    allY.sort()
-    allZ.sort()
-    
-    leastValArray = [ allX[0], allY[0], allZ[0] ]
-    mostValArray = [ allX[len(allX)-1], allY[len(allY)-1], allZ[len(allZ)-1] ]
-    leastValArray.sort()
-    mostValArray.sort()
-    leastVal = leastValArray[0]
-    mostVal = mostValArray[2]
-    valRange = mostVal - leastVal
-    
-    xRange = (allX[len(allX)-1] - allX[0]) / valRange
-    yRange = (allY[len(allY)-1] - allY[0]) / valRange
-    zRange = (allZ[len(allZ)-1] - allZ[0]) / valRange
-    
-    minValX = minVal * xRange
-    minValY = minVal * yRange
-    minValZ = minVal * zRange
-    maxValX = maxVal * xRange
-    maxValY = maxVal * yRange
-    maxValZ = maxVal * zRange
-    
-    for vert in verts:
-        x = remap(vert[0], allX[0], allX[len(allX)-1], minValX, maxValX)
-        y = remap(vert[1], allY[0], allY[len(allY)-1], minValY, maxValY)
-        z = remap(vert[2], allZ[0], allZ[len(allZ)-1], minValZ, maxValZ)
-        newVerts.append((x,y,z))
-
-    return newVerts
-
 def scale_numpy_array(arr, min_v, max_v):
     new_range = (min_v, max_v)
     max_range = max(new_range)
@@ -358,6 +315,13 @@ def resizeVoxels(voxel, shape):
             mode='nearest')
     voxel[np.nonzero(voxel)] = 1.0
     return voxel
+
+def getAveragePositionObj(obj=None, applyTransforms=False):
+    if not obj:
+        obj = lb.ss()
+    if (applyTransforms == True):
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    return getAveragePosition(obj.data.vertices, obj.matrix_world)
 
 def getAveragePosition(verts, matrix_world=None):
     returns = Vector((0,0,0))
@@ -377,8 +341,8 @@ def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
-    verts = normalize(verts, float(dims-1))
-
+    verts = lb.normalize(verts, float(dims-1))
+    
     for vert in verts:
         x = int(vert[0])
         y = dims - 1 - int(vert[1])
@@ -505,6 +469,9 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
 
 def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     avgPositionOrig = getAveragePosition(verts)
+    origCursorLocation = bpy.context.scene.cursor.location
+    bpy.context.scene.cursor.location = avgPositionOrig
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
     bv = vertsToBinvox(verts, dims, doFilter=True)
     h5 = binvoxToH5(bv, dims=dims)
@@ -517,13 +484,15 @@ def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     dims_ = float(dims - 1)
 
     for i in range(0, len(verts)):
-        verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
+        verts[i] = (Vector(verts[i]) / dims_) * Vector((bounds.x, bounds.z, bounds.y)) 
 
     avgPositionNew = getAveragePosition(verts)
     diffPosition = avgPositionOrig - avgPositionNew
 
     for i in range(0, len(verts)):
         verts[i] += diffPosition
+
+    bpy.context.scene.cursor.location = origCursorLocation
 
     return verts
 
@@ -585,7 +554,7 @@ def group_points_into_strokes(points, radius, minPointsCount):
         print("Found " + str(len(strokeGroups)) + " strokeGroups, " + str(len(unassigned_points)) + " points remaining.")
     return strokeGroups
 
-def strokeGen(verts, colors, matrix_world, radius=2, minPointsCount=5, limitPalette=32):
+def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limitPalette=32):
     latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
@@ -622,7 +591,11 @@ def strokeGen(verts, colors, matrix_world, radius=2, minPointsCount=5, limitPale
         stroke.points.add(len(strokeGroup))
 
         for j, index in enumerate(strokeGroup):    
-            point = matrix_world @ Vector(verts[index])
+            if not matrix_world:
+                point = verts[index]
+            else:
+                point = matrix_world @ Vector(verts[index])
+
             #point = matrixWorldInverted @ Vector((point[0], point[2], point[1]))
             #point = (point[0], point[1], point[2])
             pressure = 1.0
@@ -683,8 +656,11 @@ def contourGen(verts, faces, matrix_world):
                 stroke.points.add(len(entity.points))
 
                 for i, index in enumerate(entity.points):
-                    vert = slice_mesh.vertices[index] 
-                    vert = matrix_world @ Vector(vert)
+                    vert = None
+                    if not matrix_world:
+                        vert = slice_mesh.vertices[index] 
+                    else:
+                        vert = matrix_world @ Vector(slice_mesh.vertices[index])
                     #vert = [vert[0], vert[1], vert[2]]
                     lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
@@ -727,8 +703,11 @@ def skelGen(verts, faces, matrix_world):
         stroke.points.add(len(entity.points))
 
         for i, index in enumerate(entity.points):
-            vert = skel.vertices[index]
-            vert = matrix_world @ Vector((vert[0], vert[1], vert[2]))
+            vert = None
+            if not matrix_world:
+                vert = skel.vertices[index]
+            else:
+                vert = matrix_world @ Vector(skel.vertices[index])
             lb.createPoint(stroke, i, vert, 1.0, 1.0)
 
     #lb.fromLatkToGp(la, resizeTimeline=False)
