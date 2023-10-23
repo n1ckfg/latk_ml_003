@@ -10,5 +10,6 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR
 
-wget https://fox-gieg.com/patches/github/n1ckfg/latk_ml_003/model/generator_100.pth
-wget https://fox-gieg.com/patches/github/n1ckfg/latk_ml_003/model/discriminator_100.pth
+wget https://fox-gieg.com/patches/github/n1ckfg/latk_ml_003/model/model.zip
+unzip model.zip
+rm model.zip
