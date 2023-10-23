@@ -492,7 +492,7 @@ def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     dims_ = float(dims - 1)
 
     for i in range(0, len(verts)):
-        verts[i] = (Vector(verts[i]) / dims_) * Vector((bounds.x, bounds.z, bounds.y)) 
+        verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
 
     avgPositionNew = getAveragePosition(verts)
     diffPosition = avgPositionOrig - avgPositionNew
