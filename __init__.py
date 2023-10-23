@@ -175,6 +175,7 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
         obj = lb.ss()
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
+        start, end = lb.getStartEnd()
         for i in range(start, end):
             lb.goToFrame(i)
 
