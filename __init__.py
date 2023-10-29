@@ -478,10 +478,12 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
 def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     latkml003 = bpy.context.scene.latkml003_settings
     
-    avgPositionOrig = getAveragePosition(verts, matrix_world)
     origCursorLocation = bpy.context.scene.cursor.location
+
+    avgPositionOrig = getAveragePosition(verts, matrix_world)
     bpy.context.scene.cursor.location = avgPositionOrig
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    bpy.context.scene.cursor.location = Vector((0,0,0))
 
     bv = vertsToBinvox(verts, dims, doFilter=latkml003.do_filter)
     h5 = binvoxToH5(bv, dims=dims)
@@ -496,11 +498,14 @@ def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     for i in range(0, len(verts)):
         verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
 
-    avgPositionNew = getAveragePosition(verts, matrix_world)
-    diffPosition = avgPositionNew - avgPositionOrig
+    #avgPositionNew = getAveragePosition(verts, matrix_world)
+    #bpy.context.scene.cursor.location = avgPositionNew
+    #bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+
+    #diffPosition = avgPositionNew - avgPositionOrig
 
     #for i in range(0, len(verts)):
-        #verts[i] += diffPosition
+        #cverts[i] += diffPosition
 
     bpy.context.scene.cursor.location = origCursorLocation
 
