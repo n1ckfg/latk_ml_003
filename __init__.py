@@ -157,71 +157,35 @@ class latkml003Properties(bpy.types.PropertyGroup):
         default=5
     )
 
-class latkml003_Button_AllFrames(bpy.types.Operator):
-    """Operate on all frames"""
-    bl_idname = "latkml003_button.allframes"
-    bl_label = "All Frames"
-    bl_options = {'UNDO'}
+
+def doVoxelOpCore(context, allFrames=False):
+    latkml003 = context.scene.latkml003_settings
+    dims = latkml003.dims
     
-    def execute(self, context):
-        latkml003 = context.scene.latkml003_settings
-        dims = latkml003.dims
-        
-        op1 = latkml003.Operation1.lower() 
-        op2 = latkml003.Operation2.lower() 
-        op3 = latkml003.Operation3.lower() 
+    op1 = latkml003.Operation1.lower() 
+    op2 = latkml003.Operation2.lower() 
+    op3 = latkml003.Operation3.lower() 
 
-        net1 = None
-        obj = lb.ss()
+    net1 = None
+    obj = lb.ss()
 
+    start = bpy.context.scene.frame_current
+    end = start + 1
+    if (allFrames == True):
         start, end = lb.getStartEnd()
-        if (op1 == "voxel_ml"):
-            start = start - 1
+    #if (op1 == "voxel_ml"):
+        #start = start - 1
 
-        for i in range(start, end):
-            lb.goToFrame(i)
+    for i in range(start, end):
+        lb.goToFrame(i)
 
-            verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-            verts = lb.getVertices(obj)
-            faces = lb.getFaces(obj)
-            matrix_world = obj.matrix_world
-            bounds = obj.dimensions
-            avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
+        #origCursorLocation = bpy.context.scene.cursor.location
+        #bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
-            if (op1 == "voxel_ml"):
-                if not net1:
-                    net1 = loadModel()           
-                verts = doInference(net1, verts, matrix_world, dims, bounds)
-
-            if (op2 == "get_edges"):
-                verts = differenceEigenvalues(verts)
-
-            if (op3 == "skel_gen"):
-                skelGen(verts, faces, matrix_world=matrix_world)
-            elif (op3 == "contour_gen"):
-                contourGen(verts, faces, matrix_world=matrix_world)
-            else:
-                strokeGen(verts, colors, matrix_world=matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
-            
-        return {'FINISHED'}
-
-
-class latkml003_Button_SingleFrame(bpy.types.Operator):
-    """Operate on a single frame"""
-    bl_idname = "latkml003_button.singleframe"
-    bl_label = "Single Frame"
-    bl_options = {'UNDO'}
-    
-    def execute(self, context):
-        latkml003 = context.scene.latkml003_settings
-        dims = latkml003.dims
-        
-        op1 = latkml003.Operation1.lower() 
-        op2 = latkml003.Operation2.lower() 
-        op3 = latkml003.Operation3.lower() 
-
-        net1 = None
-        obj = lb.ss()
+        #lb.s(obj)
+        #bpy.context.view_layer.objects.active = obj
+        #bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
         verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         verts = lb.getVertices(obj)
@@ -233,18 +197,49 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
         if (op1 == "voxel_ml"):
             if not net1:
                 net1 = loadModel()           
-            verts = doInference(net1, verts, matrix_world, dims, bounds)
+            verts = doInference(net1, verts, dims, bounds)
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
 
+        #bpy.context.scene.cursor.location = origCursorLocation
+
+        gp = None
         if (op3 == "skel_gen"):
-            skelGen(verts, faces, matrix_world=matrix_world)
+            gp = skelGen(verts, faces, matrix_world=matrix_world)
         elif (op3 == "contour_gen"):
-            contourGen(verts, faces, matrix_world=matrix_world)
+            gp = contourGen(verts, faces, matrix_world=matrix_world)
         else:
-            strokeGen(verts, colors, matrix_world=matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            gp = strokeGen(verts, colors, matrix_world=matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         
+        #if (op1 == "voxel_ml"):
+            #lb.s(gp)
+            #bpy.context.view_layer.objects.active = gp
+            #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+            #gp.location = obj.location
+
+
+class latkml003_Button_AllFrames(bpy.types.Operator):
+    """Operate on all frames"""
+    bl_idname = "latkml003_button.allframes"
+    bl_label = "All Frames"
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+
+        doVoxelOpCore(context, allFrames=True)
+
+        return {'FINISHED'}
+
+
+class latkml003_Button_SingleFrame(bpy.types.Operator):
+    """Operate on a single frame"""
+    bl_idname = "latkml003_button.singleframe"
+    bl_label = "Single Frame"
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        doVoxelOpCore(context, allFrames=False)
         return {'FINISHED'}
 
 
@@ -475,16 +470,9 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     net_G.eval()
     return net_G
 
-def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
+def doInference(net, verts, dims=256, bounds=(1,1,1)):
     latkml003 = bpy.context.scene.latkml003_settings
     
-    origCursorLocation = bpy.context.scene.cursor.location
-
-    avgPositionOrig = getAveragePosition(verts, matrix_world)
-    bpy.context.scene.cursor.location = avgPositionOrig
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-    bpy.context.scene.cursor.location = Vector((0,0,0))
-
     bv = vertsToBinvox(verts, dims, doFilter=latkml003.do_filter)
     h5 = binvoxToH5(bv, dims=dims)
     writeTempH5(h5)
@@ -497,17 +485,6 @@ def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
 
     for i in range(0, len(verts)):
         verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
-
-    #avgPositionNew = getAveragePosition(verts, matrix_world)
-    #bpy.context.scene.cursor.location = avgPositionNew
-    #bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-
-    #diffPosition = avgPositionNew - avgPositionOrig
-
-    #for i in range(0, len(verts)):
-        #cverts[i] += diffPosition
-
-    bpy.context.scene.cursor.location = origCursorLocation
 
     return verts
 
@@ -618,6 +595,7 @@ def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limi
             lb.createPoint(stroke, j, point, pressure, strength)
 
     bpy.context.scene.cursor.location = origCursorLocation
+    return gp
 
 def contourGen(verts, faces, matrix_world):
     latkml003 = bpy.context.scene.latkml003_settings
@@ -683,6 +661,7 @@ def contourGen(verts, faces, matrix_world):
     #lb.setThickness(latkml003.thickness)
 
     bpy.context.scene.cursor.location = origCursorLocation
+    return gp
 
 def skelGen(verts, faces, matrix_world):
     latkml003 = bpy.context.scene.latkml003_settings
@@ -729,6 +708,7 @@ def skelGen(verts, faces, matrix_world):
     #lb.setThickness(latkml003.thickness)
 
     bpy.context.scene.cursor.location = origCursorLocation
+    return gp
 
 def differenceEigenvalues(verts):
     # MIT License Copyright (c) 2015 Dena Bazazian Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
