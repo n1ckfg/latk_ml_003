@@ -124,13 +124,13 @@ class latkml003Properties(bpy.types.PropertyGroup):
             ("256_V008", "256 v008", "...", 0),
             ("128_V008", "128 v008", "...", 1)
         ),
-        default="256_V008"
+        default="128_V008"
     )
 
     thickness: FloatProperty(
         name="Thickness %",
         description="...",
-        default=10.0
+        default=5.0
     )
 
     do_filter: BoolProperty(
@@ -148,7 +148,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
     strokegen_radius: FloatProperty(
         name="StrokeGen Radius",
         description="Base search distance for points",
-        default=1
+        default=0.1
     )
 
     strokegen_minPointsCount: IntProperty(
@@ -160,7 +160,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
 
 def doVoxelOpCore(context, allFrames=False):
     latkml003 = context.scene.latkml003_settings
-    dims = latkml003.dims
+    dims = None
     
     op1 = latkml003.Operation1.lower() 
     op2 = latkml003.Operation2.lower() 
@@ -196,7 +196,8 @@ def doVoxelOpCore(context, allFrames=False):
 
         if (op1 == "voxel_ml"):
             if not net1:
-                net1 = loadModel()       
+                net1 = loadModel()    
+                dims = latkml003.dims   
 
             avgPosOrig = getAveragePosition(verts)
 
