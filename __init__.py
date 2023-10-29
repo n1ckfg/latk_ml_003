@@ -173,11 +173,11 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
 
         net1 = None
         obj = lb.ss()
-        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
         start, end = lb.getStartEnd()
         for i in range(start, end):
             lb.goToFrame(i)
+            #bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
             verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
             verts = lb.getVertices(obj)
@@ -194,12 +194,12 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
             if (op2 == "get_edges"):
                 verts = differenceEigenvalues(verts)
 
-            if (op3 == "skel_gen" and op1 == op2):
-                skelGen(verts, faces, matrix_world)
-            elif (op3 == "contour_gen" and op1 == op2):
-                contourGen(verts, faces, matrix_world)
+            if (op3 == "skel_gen"):
+                skelGen(verts, faces, matrix_world=matrix_world)
+            elif (op3 == "contour_gen"):
+                contourGen(verts, faces, matrix_world=matrix_world)
             else:
-                strokeGen(verts, colors, matrix_world=None, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+                strokeGen(verts, colors, matrix_world=matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
             
         return {'FINISHED'}
 
@@ -220,7 +220,7 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
 
         net1 = None
         obj = lb.ss()
-        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        #bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
         verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         verts = lb.getVertices(obj)
@@ -238,11 +238,11 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
             verts = differenceEigenvalues(verts)
 
         if (op3 == "skel_gen"):
-            skelGen(verts, faces, matrix_world=None)
+            skelGen(verts, faces, matrix_world=matrix_world)
         elif (op3 == "contour_gen"):
-            contourGen(verts, faces, matrix_world=None)
+            contourGen(verts, faces, matrix_world=matrix_world)
         else:
-            strokeGen(verts, colors, matrix_world=None, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            strokeGen(verts, colors, matrix_world=matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         
         return {'FINISHED'}
 
