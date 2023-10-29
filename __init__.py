@@ -349,12 +349,12 @@ def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     axis_order = axis
     bv = binvox_rw.Voxels(data, shape, translate, scale, axis_order)
 
-    verts = lb.normalize(verts, float(dims-1))
+    verts = lb.normalize(verts, minVal=0.0, maxVal=float(dims-1))
     
     for vert in verts:
         x = int(vert[0])
-        y = dims - 1 - int(vert[1])
-        z = dims - 1 - int(vert[2])
+        y = int(vert[1])
+        z = int(vert[2])
         data[x][y][z] = True
 
     if (doFilter == True):
@@ -477,7 +477,8 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
 
 def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     latkml003 = bpy.context.scene.latkml003_settings
-    avgPositionOrig = getAveragePosition(verts)
+    
+    avgPositionOrig = getAveragePosition(verts, matrix_world)
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = avgPositionOrig
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
@@ -495,11 +496,11 @@ def doInference(net, verts, matrix_world, dims=256, bounds=(1,1,1)):
     for i in range(0, len(verts)):
         verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
 
-    avgPositionNew = getAveragePosition(verts)
-    diffPosition = avgPositionOrig - avgPositionNew
+    avgPositionNew = getAveragePosition(verts, matrix_world)
+    diffPosition = avgPositionNew - avgPositionOrig
 
-    for i in range(0, len(verts)):
-        verts[i] += diffPosition
+    #for i in range(0, len(verts)):
+        #verts[i] += diffPosition
 
     bpy.context.scene.cursor.location = origCursorLocation
 
