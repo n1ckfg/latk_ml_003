@@ -196,8 +196,18 @@ def doVoxelOpCore(context, allFrames=False):
 
         if (op1 == "voxel_ml"):
             if not net1:
-                net1 = loadModel()           
+                net1 = loadModel()       
+
+            avgPosOrig = getAveragePosition(verts)
+
             verts = doInference(net1, verts, dims, bounds)
+
+            avgPosNew = getAveragePosition(verts)
+
+            diffPos = avgPosOrig - avgPosNew
+
+            for i in range(0, len(verts)):
+                verts[i] = verts[i] + diffPos
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -205,6 +215,7 @@ def doVoxelOpCore(context, allFrames=False):
         #bpy.context.scene.cursor.location = origCursorLocation
 
         gp = None
+
         if (op3 == "skel_gen"):
             gp = skelGen(verts, faces, matrix_world=matrix_world)
         elif (op3 == "contour_gen"):
@@ -370,6 +381,7 @@ def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
 
     return bv
 
+'''
 def binvoxToVerts(voxel, dims=256, axis='xyz'):
     verts = []
     for x in range(0, dims):
@@ -378,6 +390,7 @@ def binvoxToVerts(voxel, dims=256, axis='xyz'):
                 if (voxel.data[x][y][z] == True):
                     verts.append([x, y, z])
     return verts
+'''
 
 def binvoxToH5(voxel, dims=256):
     shape=(dims, dims, dims)   
@@ -429,7 +442,8 @@ def readTempBinvox(dims=256, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([x, y, z])
+                    #verts.append([x, y, z])
+                    verts.append((x, dims-1-y, z))
     return verts
 
 def getModelPath(url):
