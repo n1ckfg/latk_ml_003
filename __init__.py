@@ -175,9 +175,11 @@ class latkml003_Button_AllFrames(bpy.types.Operator):
         obj = lb.ss()
 
         start, end = lb.getStartEnd()
+        if (op1 == "voxel_ml"):
+            start = start - 1
+
         for i in range(start, end):
             lb.goToFrame(i)
-            #bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
             verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
             verts = lb.getVertices(obj)
@@ -220,7 +222,6 @@ class latkml003_Button_SingleFrame(bpy.types.Operator):
 
         net1 = None
         obj = lb.ss()
-        #bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
         verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
         verts = lb.getVertices(obj)
@@ -380,8 +381,7 @@ def binvoxToVerts(voxel, dims=256, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    #verts.append([dims-1-z, y, x])
-                    verts.append([z, y, x])
+                    verts.append([x, y, z])
     return verts
 
 def binvoxToH5(voxel, dims=256):
@@ -434,7 +434,7 @@ def readTempBinvox(dims=256, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    verts.append([dims-1-z, y, x])
+                    verts.append([x, y, z])
     return verts
 
 def getModelPath(url):
