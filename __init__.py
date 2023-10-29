@@ -442,8 +442,7 @@ def readTempBinvox(dims=256, axis='xyz'):
         for y in range(0, dims):
             for z in range(0, dims):
                 if (voxel.data[x][y][z] == True):
-                    #verts.append([x, y, z])
-                    verts.append((x, dims-1-y, z))
+                    verts.append([z, y, x])
     return verts
 
 def getModelPath(url):
