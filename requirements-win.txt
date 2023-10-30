@@ -14,5 +14,7 @@ pyntcloud
 pymeshlab
 latk
 jellyfish
-sklearn
+#sklearn
+scikit-learn
+
 

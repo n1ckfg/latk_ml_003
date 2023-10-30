@@ -121,10 +121,10 @@ class latkml003Properties(bpy.types.PropertyGroup):
     Model: EnumProperty(
         name="Model",
         items=(
-            ("256_V008", "256 v008", "...", 0),
-            ("128_V008", "128 v008", "...", 1)
+            ("256_VOXEL", "256^3 voxels", "...", 0),
+            ("128_VOXEL", "128^3 voxels", "...", 1)
         ),
-        default="128_V008"
+        default="128_VOXEL"
     )
 
     thickness: FloatProperty(
@@ -460,10 +460,10 @@ def modelSelector(modelName):
     modelName = modelName.lower()
     latkml003.dims = int(modelName.split("_")[0])
 
-    if (modelName == "256_v008"):
-        return Vox2Vox_PyTorch("model/256_100.pth")
-    elif (modelName == "128_v008"):
-        return Vox2Vox_PyTorch("model/128_100.pth")
+    if (modelName == "256_voxel"):
+        return Vox2Vox_PyTorch("model/256_voxel.pth")
+    elif (modelName == "128_voxel"):
+        return Vox2Vox_PyTorch("model/128_voxel.pth")
     else:
         return None
 
