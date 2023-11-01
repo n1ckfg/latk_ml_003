@@ -192,8 +192,8 @@ def doVoxelOpCore(context, allFrames=False):
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
         
-        bounds = obj.dimensions
-        avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
+        #bounds = obj.dimensions
+        seqAbs = None #(bounds.x + bounds.y + bounds.z) / 3.0
 
         seqMin = 0.0
         seqMax = 1.0
@@ -215,21 +215,23 @@ def doVoxelOpCore(context, allFrames=False):
             if (z > seqMax):
                 seqMax = z
 
+        seqAbs = abs(seqMax - seqMin)
+
         if (op1 == "voxel_ml"):
             if not net1:
                 net1 = loadModel()    
                 dims = latkml003.dims   
 
-            #avgPosOrig = getAveragePosition(verts)
+            avgPosOrig = getAveragePosition(verts)
 
             verts = doInference(net1, verts, dims, seqMin, seqMax)
 
-            #avgPosNew = getAveragePosition(verts)
+            avgPosNew = getAveragePosition(verts)
 
-            #diffPos = avgPosOrig - avgPosNew
+            diffPos = avgPosOrig - avgPosNew
 
-            #for i in range(0, len(verts)):
-                #verts[i] = verts[i] + diffPos
+            for i in range(0, len(verts)):
+                verts[i] = verts[i] + diffPos
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -243,7 +245,7 @@ def doVoxelOpCore(context, allFrames=False):
         elif (op3 == "contour_gen"):
             gp = contourGen(verts, faces, matrix_world=matrix_world)
         else:
-            gp = strokeGen(verts, colors, matrix_world=matrix_world, radius=avgBounds * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            gp = strokeGen(verts, colors, matrix_world=matrix_world, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         
         #if (op1 == "voxel_ml"):
             #lb.s(gp)
