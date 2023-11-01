@@ -225,16 +225,16 @@ def doVoxelOpCore(context, allFrames=False):
                 net1 = loadModel()    
                 dims = latkml003.dims   
 
-            avgPosOrig = getAveragePosition(verts)
+            #avgPosOrig = getAveragePosition(verts)
 
             verts = doInference(net1, verts, dims, seqMin, seqMax)
 
-            avgPosNew = getAveragePosition(verts)
+            #avgPosNew = getAveragePosition(verts)
 
-            diffPos = avgPosOrig - avgPosNew
+            #diffPos = avgPosOrig - avgPosNew
 
-            for i in range(0, len(verts)):
-                verts[i] = verts[i] + diffPos
+            #for i in range(0, len(verts)):
+                #verts[i] = verts[i] + diffPos
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
