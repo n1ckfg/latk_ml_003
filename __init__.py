@@ -169,37 +169,12 @@ def doVoxelOpCore(context, allFrames=False):
     net1 = None
     obj = lb.ss()
 
-    seqMin = 0.0
-    seqMax = 1.0
-
     start = bpy.context.scene.frame_current
     end = start + 1
     if (allFrames == True):
         start, end = lb.getStartEnd()
     #if (op1 == "voxel_ml"):
         #start = start - 1
-
-    for i in range(start, end):
-        lb.goToFrame(i)
-        
-        verts = lb.getVertices(obj)
-
-        for vert in verts:
-            x = vert[0]
-            y = vert[1]
-            z = vert[2]
-            if (x < seqMin):
-                seqMin = x
-            if (x > seqMax):
-                seqMax = x
-            if (y < seqMin):
-                seqMin = y
-            if (y > seqMax):
-                seqMax = y
-            if (z < seqMin):
-                seqMin = z
-            if (z > seqMax):
-                seqMax = z
 
     for i in range(start, end):
         lb.goToFrame(i)
@@ -219,6 +194,26 @@ def doVoxelOpCore(context, allFrames=False):
         
         bounds = obj.dimensions
         avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
+
+        seqMin = 0.0
+        seqMax = 1.0
+    
+        for vert in verts:
+            x = vert[0]
+            y = vert[1]
+            z = vert[2]
+            if (x < seqMin):
+                seqMin = x
+            if (x > seqMax):
+                seqMax = x
+            if (y < seqMin):
+                seqMin = y
+            if (y > seqMax):
+                seqMax = y
+            if (z < seqMin):
+                seqMin = z
+            if (z > seqMax):
+                seqMax = z
 
         if (op1 == "voxel_ml"):
             if not net1:
