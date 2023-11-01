@@ -169,12 +169,37 @@ def doVoxelOpCore(context, allFrames=False):
     net1 = None
     obj = lb.ss()
 
+    seqMin = 0.0
+    seqMax = 1.0
+
     start = bpy.context.scene.frame_current
     end = start + 1
     if (allFrames == True):
         start, end = lb.getStartEnd()
     #if (op1 == "voxel_ml"):
         #start = start - 1
+
+    for i in range(start, end):
+        lb.goToFrame(i)
+        
+        verts = lb.getVertices(obj)
+
+        for vert in verts:
+            x = vert[0]
+            y = vert[1]
+            z = vert[2]
+            if (x < seqMin):
+                seqMin = x
+            if (x > seqMax):
+                seqMax = x
+            if (y < seqMin):
+                seqMin = y
+            if (y > seqMax):
+                seqMax = y
+            if (z < seqMin):
+                seqMin = z
+            if (z > seqMax):
+                seqMax = z
 
     for i in range(start, end):
         lb.goToFrame(i)
@@ -191,6 +216,7 @@ def doVoxelOpCore(context, allFrames=False):
         verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
+        
         bounds = obj.dimensions
         avgBounds = (bounds.x + bounds.y + bounds.z) / 3.0
 
@@ -201,7 +227,7 @@ def doVoxelOpCore(context, allFrames=False):
 
             avgPosOrig = getAveragePosition(verts)
 
-            verts = doInference(net1, verts, dims, bounds)
+            verts = doInference(net1, verts, dims, seqMin, seqMax)
 
             avgPosNew = getAveragePosition(verts)
 
@@ -484,7 +510,7 @@ def createPyTorchNetwork(modelPath, net_G, device): #, input_nc=3, output_nc=1, 
     net_G.eval()
     return net_G
 
-def doInference(net, verts, dims=256, bounds=(1,1,1)):
+def doInference(net, verts, dims=256, seqMin=0.0, seqMax=1.0):
     latkml003 = bpy.context.scene.latkml003_settings
     
     bv = vertsToBinvox(verts, dims, doFilter=latkml003.do_filter)
@@ -498,7 +524,12 @@ def doInference(net, verts, dims=256, bounds=(1,1,1)):
     dims_ = float(dims - 1)
 
     for i in range(0, len(verts)):
-        verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
+        #verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
+        normVert = Vector(verts[i]) / dims_
+        x = lb.remap(normVert[0], 0.0, 1.0, seqMin, seqMax)
+        y = lb.remap(normVert[1], 0.0, 1.0, seqMin, seqMax)
+        z = lb.remap(normVert[2], 0.0, 1.0, seqMin, seqMax)
+        verts[i] = Vector((x, y, z))
 
     return verts
 
