@@ -187,8 +187,9 @@ def doVoxelOpCore(context, allFrames=False):
         #bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-        verts_alt, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-        verts = lb.getVertices(obj)
+        #verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
+        verts, colors = lb.getVertsAndColors(obj)
+        #verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
         
@@ -818,25 +819,25 @@ def differenceEigenvalues(verts):
 
 def strokeGen_orig(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, spreadPoints=0.1, limitPalette=32):
     if not obj:
-        obj = ss()
+        obj = lb.ss()
     mesh = obj.data
     mat = obj.matrix_world
     #~
-    gp = getActiveGp()
-    layer = getActiveLayer()
+    gp = lb.getActiveGp()
+    layer = lb.getActiveLayer()
     if not layer:
         layer = gp.data.layers.new(name="meshToGp")
-    frame = getActiveFrame()
-    if not frame or frame.frame_number != currentFrame():
-        frame = layer.frames.new(currentFrame())
+    frame = lb.getActiveFrame()
+    if not frame or frame.frame_number != lb.currentFrame():
+        frame = layer.frames.new(lb.currentFrame())
     #~
     images = None
     try:
-        images = getUvImages()
+        images = lb.getUvImages()
     except:
         pass
     #~
-    allPoints, allColors = getVerts(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
+    allPoints, allColors = lb.getVertsAndColorsAlt(target=obj, useWorldSpace=True, useColors=True, useBmesh=False)
     #~
     pointSeqsToAdd = []
     colorsToAdd = []
@@ -846,12 +847,12 @@ def strokeGen_orig(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, s
             try:
                 color = allColors[i]
             except:
-                color = getColorExplorer(obj, i)
+                color = lb.getColorExplorer(obj, i)
         else:
             try:
-                color = getColorExplorer(obj, i, images)
+                color = lb.getColorExplorer(obj, i, images)
             except:
-                color = getColorExplorer(obj, i)
+                color = lb.getColorExplorer(obj, i)
         colorsToAdd.append(color)
         #~
         pointSeq = []
@@ -859,7 +860,7 @@ def strokeGen_orig(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, s
             #point = allPoints[i]
             try:
                 point = allPoints[i+j]
-                if (len(pointSeq) == 0 or getDistance(pointSeq[len(pointSeq)-1], point) < strokeGaps):
+                if (len(pointSeq) == 0 or lb.getDistance(pointSeq[len(pointSeq)-1], point) < strokeGaps):
                     pointSeq.append(point)
             except:
                 break
@@ -869,9 +870,9 @@ def strokeGen_orig(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, s
         color = colorsToAdd[i]
         #createColor(color)
         if (limitPalette == 0):
-            createColor(color)
+            lb.createColor(color)
         else:
-            createAndMatchColorPalette(color, limitPalette, 5) # num places
+            lb.createAndMatchColorPalette(color, limitPalette, 5) # num places
         #stroke = frame.strokes.new(getActiveColor().name)
         #stroke.draw_mode = "3DSPACE"
         stroke = frame.strokes.new()
@@ -890,5 +891,5 @@ def strokeGen_orig(obj=None, strokeLength=1, strokeGaps=10.0, shuffleOdds=1.0, s
             z = point[1] + (random.random() * 2.0 * spreadPoints) - spreadPoints
             pressure = 1.0
             strength = 1.0
-            createPoint(stroke, j, (x, y, z), pressure, strength)
+            lb.createPoint(stroke, j, (x, y, z), pressure, strength)
 
