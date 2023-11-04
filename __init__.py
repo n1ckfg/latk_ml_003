@@ -189,7 +189,7 @@ def doVoxelOpCore(context, allFrames=False):
         #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
         #verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-        verts, colors = lb.getVertsAndColors(obj)
+        verts, colors = lb.getVertsAndColors(obj, worldSpace=True)
         #verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
@@ -232,8 +232,8 @@ def doVoxelOpCore(context, allFrames=False):
 
             diffPos = avgPosOrig - avgPosNew
 
-            for i in range(0, len(verts)):
-                verts[i] = verts[i] + diffPos
+            #for i in range(0, len(verts)):
+                #verts[i] = verts[i] + diffPos
 
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
@@ -243,11 +243,11 @@ def doVoxelOpCore(context, allFrames=False):
         gp = None
 
         if (op3 == "skel_gen"):
-            gp = skelGen(verts, faces, matrix_world=matrix_world)
+            gp = skelGen(verts, faces, matrix_world=None)
         elif (op3 == "contour_gen"):
-            gp = contourGen(verts, faces, matrix_world=matrix_world)
+            gp = contourGen(verts, faces, matrix_world=None)
         else:
-            gp = strokeGen(verts, colors, matrix_world=matrix_world, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            gp = strokeGen(verts, colors, matrix_world=None, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         
         #if (op1 == "voxel_ml"):
             #lb.s(gp)
