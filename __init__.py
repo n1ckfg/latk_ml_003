@@ -180,8 +180,8 @@ def doVoxelOpCore(context, allFrames=False):
     for i in range(start, end):
         lb.goToFrame(i)
 
-        #origCursorLocation = bpy.context.scene.cursor.location
-        #bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+        origCursorLocation = bpy.context.scene.cursor.location
+        bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
         #lb.s(obj)
         #bpy.context.view_layer.objects.active = obj
@@ -189,7 +189,7 @@ def doVoxelOpCore(context, allFrames=False):
         #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
         #verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-        verts, colors = lb.getVertsAndColors(obj, worldSpace=True)
+        verts, colors = lb.getVertsAndColors(obj, worldSpace=False)
         #verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
@@ -238,16 +238,16 @@ def doVoxelOpCore(context, allFrames=False):
         if (op2 == "get_edges"):
             verts = differenceEigenvalues(verts)
 
-        #bpy.context.scene.cursor.location = origCursorLocation
+        bpy.context.scene.cursor.location = origCursorLocation
 
         gp = None
 
         if (op3 == "skel_gen"):
-            gp = skelGen(verts, faces, matrix_world=None)
+            gp = skelGen(verts, faces, matrix_world=matrix_world)
         elif (op3 == "contour_gen"):
-            gp = contourGen(verts, faces, matrix_world=None)
+            gp = contourGen(verts, faces, matrix_world=matrix_world)
         else:
-            gp = strokeGen(verts, colors, matrix_world=None, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            gp = strokeGen(verts, colors, matrix_world=matrix_world, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
         
         #if (op1 == "voxel_ml"):
             #lb.s(gp)
