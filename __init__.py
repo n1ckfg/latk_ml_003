@@ -8,6 +8,7 @@ bl_info = {
 }
 
 import bpy
+import bmesh
 import gpu
 import bgl
 from bpy.types import Operator, AddonPreferences
@@ -604,20 +605,23 @@ def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limi
 
     strokeGroups = group_points_into_strokes(verts, radius, minPointsCount)
 
+    lastColor = (1,1,1,1)
     for i, strokeGroup in enumerate(strokeGroups):
-        colorIndex = strokeGroup[0]
-        color = None
-
-        if not colors:
-            color = (1, 1, 1)
-        else:    
-            color = colors[colorIndex]
-
+        strokeColors = []
+        for j in range(0, len(strokeGroup)):
+            try:
+                newColor = colors[strokeGroup[j]]
+                strokeColors.append(newColor)
+                lastColor = newColor
+            except:
+                strokeColors.append(lastColor)
+        '''
         if (limitPalette == 0):
             lb.createColor(color)
         else:
             lb.createAndMatchColorPalette(color, limitPalette, 5) # num places
-        
+        '''
+
         stroke = frame.strokes.new()
         stroke.display_mode = '3DSPACE'
         stroke.line_width = int(latkml003.thickness) #10 # adjusted from 100 for 2.93
@@ -635,7 +639,7 @@ def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limi
             #point = (point[0], point[1], point[2])
             pressure = 1.0
             strength = 1.0
-            lb.createPoint(stroke, j, point, pressure, strength)
+            lb.createPoint(stroke, j, point, pressure, strength, strokeColors[j])
 
     bpy.context.scene.cursor.location = origCursorLocation
     return gp
