@@ -125,6 +125,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
         items=(
             ("256_VOXEL", "256^3 voxels", "...", 0),
             ("128_VOXEL", "128^3 voxels", "...", 1)
+            ("64_VOXEL", "64^3 voxels", "...", 1)
         ),
         default="128_VOXEL"
     )
@@ -506,6 +507,8 @@ def modelSelector(modelName):
         return Vox2Vox_PyTorch("model/256_voxel.pth")
     elif (modelName == "128_voxel"):
         return Vox2Vox_PyTorch("model/128_voxel.pth")
+    elif (modelName == "64_voxel"):
+        return Vox2Vox_PyTorch("model/64_voxel.pth")
     else:
         return None
 
