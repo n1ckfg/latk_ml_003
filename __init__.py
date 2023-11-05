@@ -606,15 +606,15 @@ def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limi
     strokeGroups = group_points_into_strokes(verts, radius, minPointsCount)
 
     lastColor = (1,1,1,1)
-    for i, strokeGroup in enumerate(strokeGroups):
+    for strokeGroup in strokeGroups:
         strokeColors = []
-        for j in range(0, len(strokeGroup)):
+        for i in range(0, len(strokeGroup)):
             try:
-                newColor = colors[strokeGroup[j]]
+                newColor = colors[strokeGroup[i]]
                 strokeColors.append(newColor)
                 lastColor = newColor
             except:
-                strokeColors.append(lastColor)
+                strokeColors.append((0,1,0,1)) #lastColor)
         '''
         if (limitPalette == 0):
             lb.createColor(color)
@@ -629,17 +629,17 @@ def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limi
 
         stroke.points.add(len(strokeGroup))
 
-        for j, index in enumerate(strokeGroup):    
+        for i, strokeIndex in enumerate(strokeGroup):    
             if not matrix_world:
-                point = verts[index]
+                point = verts[strokeIndex]
             else:
-                point = matrix_world @ Vector(verts[index])
+                point = matrix_world @ Vector(verts[strokeIndex])
 
             #point = matrixWorldInverted @ Vector((point[0], point[2], point[1]))
             #point = (point[0], point[1], point[2])
             pressure = 1.0
             strength = 1.0
-            lb.createPoint(stroke, j, point, pressure, strength, strokeColors[j])
+            lb.createPoint(stroke, i, point, pressure, strength, strokeColors[i])
 
     bpy.context.scene.cursor.location = origCursorLocation
     return gp
