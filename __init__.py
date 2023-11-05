@@ -36,6 +36,7 @@ import skeletor as sk
 import trimesh
 from scipy.spatial.distance import cdist
 from scipy.spatial import Delaunay
+from scipy.spatial import cKDTree
 import scipy.ndimage as nd
 from pyntcloud import PyntCloud 
 import pandas as pd
@@ -373,7 +374,24 @@ def getAveragePosition(verts, matrix_world=None):
             returns += matrix_world @ Vector(vert)
     returns /= float(len(verts))
     return returns
-   
+
+def transferVertexColors(sourceVerts, sourceColors, destVerts):
+    if (len(sourceVerts) != len(sourceColors)):
+        return None
+    prepSource = np.array([])
+    for i in range(0, len(sourceVerts)):
+        prepSource.append([sourceVerts[i][0], sourceVerts[i][1], sourceVerts[i][2], sourceColors[i][0], sourceColors[i][1], sourceColors[i][2]])
+    
+    prepDest = np.array(destVerts)
+    kdtree = cKDTree(prepDest[:, :3])
+
+    for pointSource in prepSource:
+        x, y, z, r, g, b = pointSource
+        _, nearestPointIndex = kdtree.query([x, y, z])  # Find the nearest destination point
+        prepDest[nearestPointIndex, 3:] = [r, g, b]  # Set the color of the nearest destination point
+
+    return np.array([(v[3], v[4], v[5]) for v in prepDest])  
+
 def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
     data = np.zeros(shape, dtype=bool)
