@@ -189,7 +189,7 @@ def doVoxelOpCore(context, allFrames=False):
         #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
         #verts, colors = lb.getVertsAndColors(target=obj, useWorldSpace=False, useColors=True, useBmesh=False)
-        verts, colors = lb.getVertsAndColors(obj, worldSpace=False)
+        verts, colors = lb.getVertices(obj, getColors=True, worldSpace=False)
         #verts = lb.getVertices(obj)
         faces = lb.getFaces(obj)
         matrix_world = obj.matrix_world
