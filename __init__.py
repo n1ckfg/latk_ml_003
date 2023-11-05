@@ -124,8 +124,8 @@ class latkml003Properties(bpy.types.PropertyGroup):
         name="Model",
         items=(
             ("256_VOXEL", "256^3 voxels", "...", 0),
-            ("128_VOXEL", "128^3 voxels", "...", 1)
-            ("64_VOXEL", "64^3 voxels", "...", 1)
+            ("128_VOXEL", "128^3 voxels", "...", 1),
+            ("64_VOXEL", "64^3 voxels", "...", 2)
         ),
         default="128_VOXEL"
     )
@@ -140,6 +140,12 @@ class latkml003Properties(bpy.types.PropertyGroup):
         name="Prefilter",
         description="...",
         default=True
+    )
+
+    do_recenter: BoolProperty(
+        name="Recenter",
+        description="...",
+        default=False
     )
 
     dims: IntProperty(
@@ -226,17 +232,18 @@ def doVoxelOpCore(context, allFrames=False):
                 net1 = loadModel()    
                 dims = latkml003.dims   
 
-            avgPosOrig = getAveragePosition(verts)
+            avgPosOrig = None
+            if (latkml003.do_recenter == True):
+                avgPosOrig = getAveragePosition(verts)
 
             vertsOrig = np.array(verts).copy()
             verts = doInference(net1, verts, dims, seqMin, seqMax)
 
-            avgPosNew = getAveragePosition(verts)
-
-            diffPos = avgPosOrig - avgPosNew
-
-            for i in range(0, len(verts)):
-                verts[i] = verts[i] + diffPos
+            if (latkml003.do_recenter == True):
+                avgPosNew = getAveragePosition(verts)
+                diffPos = avgPosOrig - avgPosNew
+                for i in range(0, len(verts)):
+                    verts[i] = verts[i] + diffPos
 
             colors = transferVertexColors(vertsOrig, colors, verts)
 
@@ -307,9 +314,13 @@ class latkml003Properties_Panel(bpy.types.Panel):
 
         row = layout.row()
         row.prop(latkml003, "Operation1")
+
         row = layout.row()
         row.prop(latkml003, "Model")
+
+        row = layout.row()
         row.prop(latkml003, "do_filter")
+        row.prop(latkml003, "do_recenter")
 
         row = layout.row()
         row.prop(latkml003, "Operation2")
