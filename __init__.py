@@ -236,7 +236,7 @@ def doVoxelOpCore(context, allFrames=False):
             if (latkml003.do_recenter == True):
                 avgPosOrig = getAveragePosition(verts)
 
-            vertsOrig = np.array(verts).copy()
+            vertsOrig = np.array(verts) #.copy()
             verts = doInference(net1, verts, dims, seqMin, seqMax)
 
             if (latkml003.do_recenter == True):
@@ -248,7 +248,9 @@ def doVoxelOpCore(context, allFrames=False):
             colors = transferVertexColors(vertsOrig, colors, verts)
 
         if (op2 == "get_edges"):
+            vertsOrig = np.array(verts)
             verts = differenceEigenvalues(verts)
+            colors = transferVertexColors(vertsOrig, colors, verts)           
 
         bpy.context.scene.cursor.location = origCursorLocation
 
