@@ -227,7 +227,9 @@ def doVoxelOpCore(context, allFrames=False):
 
             avgPosOrig = getAveragePosition(verts)
 
-            verts = doInference(net1, verts, dims, seqMin, seqMax)
+            vertsOrig = np.array(verts)
+            verts = doInference(net1, vertsOrig, dims, seqMin, seqMax)
+            colors = transferVertexColors(vertsOrig, colors, verts)
 
             avgPosNew = getAveragePosition(verts)
 
@@ -376,23 +378,17 @@ def getAveragePosition(verts, matrix_world=None):
     return returns
 
 def transferVertexColors(sourceVerts, sourceColors, destVerts):
-    if (len(sourceVerts) != len(sourceColors)):
-        return None
+    sourceVerts = np.array(sourceVerts)
+    sourceColors = np.array(sourceColors)
+    destVerts = np.array(destVerts)
 
-    prepSource = []
-    for i in range(0, len(sourceVerts)):
-        prepSource.append([sourceVerts[i][0], sourceVerts[i][1], sourceVerts[i][2], sourceColors[i][0], sourceColors[i][1], sourceColors[i][2]])
-    prepSource = np.array(prepSource)
+    tree = cKDTree(sourceVerts)
 
-    prepDest = np.array(destVerts)
-    kdtree = cKDTree(prepDest[:, :3])
+    _, indices = tree.query(destVerts) #, k=1)
 
-    for pointSource in prepSource:
-        x, y, z, r, g, b = pointSource
-        _, nearestPointIndex = kdtree.query([x, y, z], k=1)  # Find the nearest destination point        
-        prepDest[nearestPointIndex, 3:] = [r, g, b]  # Set the color of the nearest destination point
+    destColors = sourceColors[indices]
 
-    return np.array([(v[3], v[4], v[5]) for v in prepDest])  
+    return destColors
 
 def vertsToBinvox(verts, dims=256, doFilter=False, axis='xyz'):
     shape = (dims, dims, dims)
