@@ -247,21 +247,21 @@ def doVoxelOpCore(context, allFrames=False):
 
             colors = transferVertexColors(vertsOrig, colors, verts)
 
-        if (op2 == "get_edges"):
+        if (op2 == "get_edges" and op1 != "voxel_ml"):
             vertsOrig = np.array(verts)
             verts = differenceEigenvalues(verts)
             colors = transferVertexColors(vertsOrig, colors, verts)           
 
         bpy.context.scene.cursor.location = origCursorLocation
 
-        gp = None
+        #gp = None
 
-        if (op3 == "skel_gen"):
-            gp = skelGen(verts, faces, matrix_world=matrix_world)
-        elif (op3 == "contour_gen"):
-            gp = contourGen(verts, faces, matrix_world=matrix_world)
+        if (op3 == "skel_gen" and op1 != "voxel_ml"):
+            skelGen(verts, faces, matrix_world=matrix_world)
+        elif (op3 == "contour_gen" and op1 != "voxel_ml"):
+            contourGen(verts, faces, matrix_world=matrix_world)
         else:
-            gp = strokeGen(verts, colors, matrix_world=matrix_world, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, limitPalette=context.scene.latk_settings.paletteLimit)
+            strokeGen(verts, colors, matrix_world=matrix_world, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, origin=obj.location) #limitPalette=context.scene.latk_settings.paletteLimit)
         
         #if (op1 == "voxel_ml"):
             #lb.s(gp)
@@ -623,7 +623,7 @@ def group_points_into_strokes(points, radius, minPointsCount):
         print("Found " + str(len(strokeGroups)) + " strokeGroups, " + str(len(unassigned_points)) + " points remaining.")
     return strokeGroups
 
-def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, limitPalette=32):
+def strokeGen(verts, colors, matrix_world=None, radius=2, minPointsCount=5, origin=None): #limitPalette=32):
     latkml003 = bpy.context.scene.latkml003_settings
     origCursorLocation = bpy.context.scene.cursor.location
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
