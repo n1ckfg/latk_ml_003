@@ -556,11 +556,9 @@ def doInference(net, verts, dims=256, seqMin=0.0, seqMax=1.0):
     dims_ = float(dims - 1)
 
     for i in range(0, len(verts)):
-        #verts[i] = (Vector(verts[i]) / dims_) * Vector(bounds)
-        normVert = Vector(verts[i]) / dims_
-        x = lb.remap(normVert[0], 0.0, 1.0, seqMin, seqMax)
-        y = lb.remap(normVert[1], 0.0, 1.0, seqMin, seqMax)
-        z = lb.remap(normVert[2], 0.0, 1.0, seqMin, seqMax)
+        x = lb.remap(verts[i][0], 0.0, dims_, seqMin, seqMax)
+        y = lb.remap(verts[i][1], 0.0, dims_, seqMin, seqMax)
+        z = lb.remap(verts[i][2], 0.0, dims_, seqMin, seqMax)
         verts[i] = Vector((x, y, z))
 
     return verts
