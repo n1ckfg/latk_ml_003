@@ -96,7 +96,9 @@ class latkml003Properties(bpy.types.PropertyGroup):
         name="Operation 1",
         items=(
             ("NONE", "None", "...", 0),
-            ("VOXEL_ML", "Voxelize", "...", 1)
+            ("64_VOXEL", "64^3 voxels", "...", 1),
+            ("128_VOXEL", "128^3 voxels", "...", 2),
+            ("256_VOXEL", "256^3 voxels", "...", 3)
         ),
         default="NONE"
     )
@@ -118,16 +120,6 @@ class latkml003Properties(bpy.types.PropertyGroup):
             ("SKEL_GEN", "Connect Skeleton", "...", 2)
         ),
         default="STROKE_GEN"
-    )
-
-    Model: EnumProperty(
-        name="Model",
-        items=(
-            ("256_VOXEL", "256^3 voxels", "...", 0),
-            ("128_VOXEL", "128^3 voxels", "...", 1),
-            ("64_VOXEL", "64^3 voxels", "...", 2)
-        ),
-        default="128_VOXEL"
     )
 
     thickness: FloatProperty(
@@ -182,7 +174,7 @@ def doVoxelOpCore(context, allFrames=False):
     end = start + 1
     if (allFrames == True):
         start, end = lb.getStartEnd()
-    #if (op1 == "voxel_ml"):
+    #if (op1 != "none"):
         #start = start - 1
 
     for i in range(start, end):
@@ -227,7 +219,7 @@ def doVoxelOpCore(context, allFrames=False):
 
         seqAbs = abs(seqMax - seqMin)
 
-        if (op1 == "voxel_ml"):
+        if (op1 != "none"):
             if not net1:
                 net1 = loadModel()    
                 dims = latkml003.dims   
@@ -247,7 +239,7 @@ def doVoxelOpCore(context, allFrames=False):
 
             colors = transferVertexColors(vertsOrig, colors, verts)
 
-        if (op2 == "get_edges" and op1 != "voxel_ml"):
+        if (op2 == "get_edges" and op1 == "none"):
             vertsOrig = np.array(verts)
             verts = differenceEigenvalues(verts)
             colors = transferVertexColors(vertsOrig, colors, verts)           
@@ -256,18 +248,12 @@ def doVoxelOpCore(context, allFrames=False):
 
         #gp = None
 
-        if (op3 == "skel_gen" and op1 != "voxel_ml"):
+        if (op3 == "skel_gen" and op1 == "none"):
             skelGen(verts, faces, matrix_world=matrix_world)
-        elif (op3 == "contour_gen" and op1 != "voxel_ml"):
+        elif (op3 == "contour_gen" and op1 == "none"):
             contourGen(verts, faces, matrix_world=matrix_world)
         else:
             strokeGen(verts, colors, matrix_world=matrix_world, radius=seqAbs * latkml003.strokegen_radius, minPointsCount=latkml003.strokegen_minPointsCount, origin=obj.location) #limitPalette=context.scene.latk_settings.paletteLimit)
-        
-        #if (op1 == "voxel_ml"):
-            #lb.s(gp)
-            #bpy.context.view_layer.objects.active = gp
-            #bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-            #gp.location = obj.location
 
 
 class latkml003_Button_AllFrames(bpy.types.Operator):
@@ -316,9 +302,6 @@ class latkml003Properties_Panel(bpy.types.Panel):
 
         row = layout.row()
         row.prop(latkml003, "Operation1")
-
-        row = layout.row()
-        row.prop(latkml003, "Model")
 
         row = layout.row()
         row.prop(latkml003, "do_filter")
@@ -507,7 +490,7 @@ def getModelPath(url):
 
 def loadModel():
     latkml003 = bpy.context.scene.latkml003_settings
-    returns = modelSelector(latkml003.Model)
+    returns = modelSelector(latkml003.Operation1)
     return returns
 
 def modelSelector(modelName):
@@ -515,15 +498,7 @@ def modelSelector(modelName):
 
     modelName = modelName.lower()
     latkml003.dims = int(modelName.split("_")[0])
-
-    if (modelName == "256_voxel"):
-        return Vox2Vox_PyTorch("model/256_voxel.pth")
-    elif (modelName == "128_voxel"):
-        return Vox2Vox_PyTorch("model/128_voxel.pth")
-    elif (modelName == "64_voxel"):
-        return Vox2Vox_PyTorch("model/64_voxel.pth")
-    else:
-        return None
+    return Vox2Vox_PyTorch("model/" + modelName + ".pth")
 
 def getPyTorchDevice():
     device = None
