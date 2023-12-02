@@ -161,6 +161,7 @@ class latkml003Properties(bpy.types.PropertyGroup):
 
 def doVoxelOpCore(context, allFrames=False):
     latkml003 = context.scene.latkml003_settings
+
     dims = None
     
     op1 = latkml003.Operation1.lower() 
@@ -169,6 +170,8 @@ def doVoxelOpCore(context, allFrames=False):
 
     net1 = None
     obj = lb.ss()
+    la = lb.latk.Latk(init=True)
+    gp = lb.fromLatkToGp(la)
 
     start = bpy.context.scene.frame_current
     end = start + 1
