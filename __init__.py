@@ -171,7 +171,7 @@ def doVoxelOpCore(context, allFrames=False):
     net1 = None
     obj = lb.ss()
     la = lb.latk.Latk(init=True)
-    gp = lb.fromLatkToGp(la)
+    gp = lb.fromLatkToGp(la, resizeTimeline = False)
 
     start = bpy.context.scene.frame_current
     end = start + 1
