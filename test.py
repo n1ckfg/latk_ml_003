@@ -26,6 +26,16 @@ import torch
 import h5py
 import binvox_rw
 
+def getPyTorchDevice(mps=False):
+    device = None
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available() and mps==True:
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    return device
+
 def test():
     parser = argparse.ArgumentParser()
     parser.add_argument("--epoch", type=int, default=200, help="epoch to start training from")
@@ -65,13 +75,15 @@ def test():
     # Calculate output of image discriminator (PatchGAN)
     patch = (1, opt.img_height // 2 ** 4, opt.img_width // 2 ** 4, opt.img_depth // 2 ** 4)
 
+    device = getPyTorchDevice() 
+
     # Initialize generator and discriminator
     generator = GeneratorUNet()
-    discriminator = Discriminator()
+    #discriminator = Discriminator()
 
     if cuda:
         generator = generator.cuda()
-        discriminator = discriminator.cuda()
+        #discriminator = discriminator.cuda()
         criterion_GAN.cuda()
         criterion_voxelwise.cuda()
 
@@ -79,8 +91,10 @@ def test():
         # Load pretrained models
     #generator.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
     #discriminator.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
-    generator.load_state_dict(torch.load("model/generator_" + str(opt.epoch) + ".pth"))
-    discriminator.load_state_dict(torch.load("model/discriminator_" + str(opt.epoch) + ".pth"))
+    generator.to(device)
+    generator.load_state_dict(torch.load("model/generator_" + str(opt.epoch) + ".pth", map_location=device))
+    generator.eval()
+    #discriminator.load_state_dict(torch.load("model/discriminator_" + str(opt.epoch) + ".pth", map_location=device))
     #else:
         # Initialize weights
         #generator.apply(weights_init_normal)
@@ -88,7 +102,7 @@ def test():
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.glr, betas=(opt.b1, opt.b2))
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.dlr, betas=(opt.b1, opt.b2))
+    #optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.dlr, betas=(opt.b1, opt.b2))
 
     # Configure dataloaders
     transforms_ = transforms.Compose([
@@ -130,7 +144,7 @@ def test():
     dataiter = iter(val_dataloader)
 
     def sample_voxel_volumes(index):
-        imgs = dataiter.next()
+        imgs = next(dataiter) #dataiter.next()
 
         """Saves a generated sample from the validation set"""
         real_A = Variable(imgs["A"].unsqueeze_(1).type(Tensor))
